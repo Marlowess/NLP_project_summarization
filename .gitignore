@@ -8,7 +8,6 @@
 summaries/
 output/
 slurm*
-# !scripts/
 .gradio/
 .test/
 
