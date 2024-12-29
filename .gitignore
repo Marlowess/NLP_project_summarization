@@ -3,8 +3,8 @@
 
 # GLIMPSE
 #  Ignore all the data except orignial files
-data/*
-!data/
+# data/*
+# !data/
 summaries/
 output/
 slurm*
