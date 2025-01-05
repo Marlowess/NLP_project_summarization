@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument(
         "--question",
         type=str,
-        default="repetition",
+        default="2",
     )
     parser.add_argument("--summaries", type=Path, default="")
     parser.add_argument("--select", type=str, default="*")
