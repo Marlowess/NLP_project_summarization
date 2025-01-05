@@ -200,7 +200,7 @@ def main():
     if not output_path.parent.exists():
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    df_dataset.to_csv(output_path, index=False, encoding="utf-8")
+    df_dataset.to_csv(output_path, index=False, encoding="utf-8-sig")
 
 
 if __name__ == "__main__":
