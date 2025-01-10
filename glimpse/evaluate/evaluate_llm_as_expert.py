@@ -10,6 +10,7 @@ from lexrank.mappings.stopwords import STOPWORDS
 from nltk.tokenize import sent_tokenize
 import numpy as np
 import pandas as pd
+import nltk
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -60,6 +61,8 @@ def evaluate_summaries(documents, summaries):
     return evaluations
 
 def main():
+    nltk.download('punkt')
+    nltk.download('punkt_tab')
     args = parse_args()
     # Sample documents
     documents_df = pd.read_csv(args.summaries)
