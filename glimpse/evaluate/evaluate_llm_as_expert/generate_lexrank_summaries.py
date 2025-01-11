@@ -1,10 +1,18 @@
 from lexrank import LexRank
 from lexrank.mappings.stopwords import STOPWORDS
 from nltk.tokenize import sent_tokenize
-from path import Path
 import nltk
+from pathlib import Path
+import argparse
+import pandas as pd
 
-def lexrank_summary(documents):
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--summaries", type=Path, default="")
+    args = parser.parse_args()
+    return args
+
+def lexrank_summary_f(documents):
     """Summarize using LexRank."""
 
     corpus = []
@@ -37,8 +45,12 @@ def lexrank_summary(documents):
 def main():
     nltk.download('punkt')
     nltk.download('punkt_tab')
-    lexrank_summary()
-    # todo save summaries
+    documents_df = pd.read_csv(args.summaries)
+    reviews_by_doc = documents_df.groupby('id')['text'].apply(list).reset_index()
+    for paper in reviews_by_doc['id']:
+        documents = reviews_by_doc[reviews_by_doc['id'] == paper]['text'].to_numpy()[0]
+        lex_rank_summary = lexrank_summary_f(documents)
+        # todo save summaries
     
 if __name__ == "__main__":
     main()
