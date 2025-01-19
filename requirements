@@ -9,3 +9,4 @@ nltk
 SentencePiece
 bert-extractive-summarizer
 lexrank
+openai
