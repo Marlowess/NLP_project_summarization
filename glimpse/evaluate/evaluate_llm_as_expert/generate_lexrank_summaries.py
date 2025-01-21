@@ -5,6 +5,7 @@ import nltk
 from pathlib import Path
 import argparse
 import pandas as pd
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -47,10 +48,19 @@ def main():
     nltk.download('punkt_tab')
     documents_df = pd.read_csv(args.summaries)
     reviews_by_doc = documents_df.groupby('id')['text'].apply(list).reset_index()
+    res_df = pd.DataFrame(columns=['summary', 'reviews'])
     for paper in reviews_by_doc['id']:
-        documents = reviews_by_doc[reviews_by_doc['id'] == paper]['text'].to_numpy()[0]
-        lex_rank_summary = lexrank_summary_f(documents)
-        # todo save summaries
+        reviews = reviews_by_doc[reviews_by_doc['id'] == paper]['text'].to_numpy()[0]
+        lex_rank_summary = lexrank_summary_f(reviews)
+        res_df = pd.concat([res_df, pd.DataFrame({'summary': [lex_rank_summary], 'reviews': [reviews]})], ignore_index=True)
+    
+    folder_path = "data/evaluation"
+    file_name = "lexrank_summaries.csv"
+    file_path = os.path.join(folder_path, file_name)
+
+    os.makedirs(folder_path, exist_ok=True)
+
+    res_df.to_csv(file_path, index=False)
     
 if __name__ == "__main__":
     main()
