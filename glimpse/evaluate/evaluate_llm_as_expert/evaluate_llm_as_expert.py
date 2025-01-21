@@ -1,6 +1,7 @@
 import openai
 import argparse
 from pathlib import Path
+import pandas as pd
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -88,12 +89,12 @@ Please assign a score from 1 to 10 and provide a short explanation for each summ
 def main():
     openai.api_key = "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"
     args = parse_args()
-    summaries_by_documents_df = args.summaries_by_documents
+    summaries_by_documents_df = pd.read_csv(args.summaries_by_documents)
     eval_type = args.eval_type
-    for summary_by_docs in summaries_by_documents_df:
-        documents = summary_by_docs.documents
-        generated_summary = summary_by_docs.summary
-        evaluation = evaluate_summary(documents, generated_summary, eval_type)
+    for index, row in summaries_by_documents_df.iterrows():
+        reviews = row['reviews']
+        generated_summary = row['summary']
+        evaluation = evaluate_summary(reviews, generated_summary, eval_type)
         print("Evaluation Results:")
         print(evaluation)
 
