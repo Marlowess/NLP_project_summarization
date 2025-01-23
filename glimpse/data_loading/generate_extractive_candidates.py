@@ -107,9 +107,7 @@ def main():
     df_dataset.to_csv(output_path, index=False, encoding="utf-8-sig")
     
     # in case of scripted run, print the output path
-    if args.scripted_run: 
-        return output_path
-
+    if args.scripted_run: print(output_path)
 
 if __name__ == "__main__":
     main()
