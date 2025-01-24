@@ -2,6 +2,7 @@ import openai
 import argparse
 from pathlib import Path
 import pandas as pd
+import json
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -9,6 +10,40 @@ def parse_args():
     parser.add_argument("--eval_type", type=Path, default="", required=True)
     args = parser.parse_args()
     return args
+
+def update_dataset_with_json(json_data, df=None):
+    """
+    Aggiunge i dati di un JSON formattato per la valutazione di riassunti a un dataset esistente,
+    oppure crea un nuovo dataset se non esiste.
+    
+    Args:
+        json_data (str): Una stringa JSON valida che contiene i punteggi.
+        df (pd.DataFrame, opzionale): Un DataFrame esistente da aggiornare. Se None, viene creato uno nuovo.
+        
+    Returns:
+        pd.DataFrame: Un DataFrame pandas aggiornato con i nuovi dati.
+    """
+    try:
+        data = json.loads(json_data)
+
+        # Extract scores from JSON
+        new_row = {criterion: details["score"] for criterion, details in data.items()}
+
+        new_df = pd.DataFrame([new_row])
+        
+        if df is None:
+            df = new_df
+        else:
+            df = pd.concat([df, new_df], ignore_index=True)
+
+        return df
+
+    except json.JSONDecodeError as e:
+        print("Invalid JSON format:", e)
+        return df
+    except KeyError as e:
+        print("Missing expected key in JSON:", e)
+        return df
 
 def evaluate_summary(documents, generated_summary, eval_type):
     """
@@ -28,7 +63,7 @@ Your task is to evaluate the summary based on the following criteria:
 - Faithfulness: Does the summary accurately represent the source documents without adding false information?
 - Readability: Is the summary easy to read and grammatically correct?
 
-Please assign a score from 1 to 10 for each criterion and provide a short explanation for each score.
+Please assign a score from 1 to 10 for each criterion.
 
 [Documents]
 {document_text}
@@ -36,21 +71,26 @@ Please assign a score from 1 to 10 for each criterion and provide a short explan
 [Generated Summary]
 {generated_summary}
 
-Please provide your evaluation in the following format:
-Score for Coverage: X/10
-Explanation: ...
+Provide your evaluation exclusively in the following JSON format:
+{{
+    "coverage": {{
+        "score": X,
+    }},
+    "coherence": {{
+        "score": X,
+    }},
+    "conciseness": {{
+        "score": X,
+    }},
+    "faithfulness": {{
+        "score": X,
+    }},
+    "readability": {{
+        "score": X,
+    }}
+}}
 
-Score for Coherence: X/10
-Explanation: ...
-
-Score for Conciseness: X/10
-Explanation: ...
-
-Score for Faithfulness: X/10
-Explanation: ...
-
-Score for Readability: X/10
-Explanation: ...
+Ensure the JSON is valid and does not include any additional text or comments.
 """
     
     prompt_discriminativeness = f"""
@@ -60,13 +100,29 @@ You are an expert in evaluating document summaries. Below, you will receive:
 
 Your task is to evaluate whether the summary captures both common and unique ideas of the documents.
 
-Please assign a score from 1 to 10 and provide a short explanation for each summary.
+Assign a score from 1 to 10 to evaluate if the summary captures common ideas of the documents.
+Assign a score from 1 to 10 to evaluate if the summary captures unique ideas of the documents.
+Assign a score from 1 to 10 for the confidence of your evaluation.
 
 [Documents]
 {document_text}
 
 [Generated Summary]
 {generated_summary}
+
+Provide your evaluation exclusively in the following JSON format:
+{{
+    "common": {{
+        "score": X,
+        "confidence": X,
+    }},
+    "unique": {{
+        "score": X,
+        "confidence": X,
+    }}
+}}
+
+Ensure the JSON is valid and does not include any additional text or comments.
 """
     
     if (eval_type == "discriminativeness"):
@@ -75,7 +131,7 @@ Please assign a score from 1 to 10 and provide a short explanation for each summ
         prompt = prompt_seahorse_like
     
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are an AI assistant."},
             {"role": "user", "content": prompt}
@@ -91,12 +147,14 @@ def main():
     args = parse_args()
     summaries_by_documents_df = pd.read_csv(args.summaries_by_documents)
     eval_type = args.eval_type
+    evaluation_df = None
     for index, row in summaries_by_documents_df.iterrows():
         reviews = row['reviews']
         generated_summary = row['summary']
         evaluation = evaluate_summary(reviews, generated_summary, eval_type)
-        print("Evaluation Results:")
-        print(evaluation)
+        evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
+    
+    evaluation_df.to_csv("data/evaluation/evaluation_dataset.csv", index=False)
 
 if __name__ == "__main__":
     main()
