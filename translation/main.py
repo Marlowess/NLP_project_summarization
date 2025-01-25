@@ -12,5 +12,7 @@ def main():
     
     handler = PipelineHandler(settings)
     handler.perform_extractive_step()
+    handler.perform_abstractive_step()
+    handler.perform_evaluation('seahorse')
 
 main()

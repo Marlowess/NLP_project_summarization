@@ -20,7 +20,7 @@ RSA_PREFIX="[RSA]"
 
 PROCESSED_DATA_PATH="{root_path}/data/processed"
 INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
-    "model": ("gsarti/it5-base", str),
+    "abstractive_model": ("facebook/bart-large-cnn", str),
     "batch_size": (8, int),
     "device": ("cuda", str),
     "limit": (1, int),
@@ -28,7 +28,8 @@ INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
     "print_output_path": (True, bool),
     "output_dir": ("data/candidates", str),
     "rsa_output_dir": ("output", str),
-    "seahorse_evaluation_key_questions": ([1, 2], list)
+    "seahorse_evaluation_key_questions": ([1, 2], list),
+    "input_files_to_process": (["all_reviews_2017_translated.csv"], list)
 }
 
 class PipelineHandler:
@@ -92,18 +93,18 @@ class PipelineHandler:
         if not os.path.exists(PROCESSED_DATA_PATH.format(root_path=self.base_path)):
             os.makedirs(PROCESSED_DATA_PATH.format(root_path=self.base_path))
 
-        for year in range (2017, 2021):
+        for file in self.settings.get('input_files_to_process'):
             try:
-                dataset = pd.read_csv(f"{self.base_path}/data/all_reviews_{year}_translated.csv")
+                dataset = pd.read_csv(f"{self.base_path}/data/{file}")
                 sub_dataset = dataset[['id','review', 'metareview']]
                 sub_dataset.rename(columns={"review": "text", "metareview": "gold"}, inplace=True)
-                self._log_message(PREPROCESSING_PREFIX, f"Found a file for year {year}. Managing it...")
+                self._log_message(PREPROCESSING_PREFIX, f"File {file} found. Managing it.")
 
-                output_file_path = f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/all_reviews_{year}_translated.csv"
+                output_file_path = f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/{file}"
                 sub_dataset.to_csv(output_file_path, index=False)
                 self._log_message(PREPROCESSING_PREFIX, f"Saved file at {output_file_path}")
             except:
-                self._log_message(PREPROCESSING_PREFIX, f"Input file for year {year} not found or already generated. Skipping it...")
+                self._log_message(PREPROCESSING_PREFIX, f"Input file {file} not found or already managed. Skipping it.")
 
     def perform_extractive_step(self):
         """
@@ -143,7 +144,7 @@ class PipelineHandler:
             "--device", str(self.settings.get('device')),
             "--limit", str(self.settings.get('limit')),
             "--output_dir", f"{self.base_path}/{self.settings.get('output_dir')}",
-            "--model_name", str(self.settings.get('model')),
+            "--model_name", str(self.settings.get('abstractive_model')),
             "--scripted-run" if self.settings.get('print_output_path') else ''
             ], capture_output=True, text=True)
         
