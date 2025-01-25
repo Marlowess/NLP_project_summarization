@@ -13,8 +13,9 @@ VALIDATION_PREFIX="[VALIDATION]"
 CANDIDATES_CREATION_PREFIX="[CANDIDATES-CREATION]"
 INIT_STEP_PREFIX="[INIT]"
 PREPROCESSING_PREFIX="[PREPROCESSING]"
-PROCESSED_DATA_PATH="{root_path}/data/processed"
+RSA_PREFIX="[RSA]"
 
+PROCESSED_DATA_PATH="{root_path}/data/processed"
 INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
     "model": ("gsarti/it5-base", str),
     "batch_size": (8, int),
@@ -157,7 +158,7 @@ class PipelineHandler:
         """
         This method receives path of candidates record and performs the RSA method on them
         """
-        print("Computing the RSA score...")
+        self._log_message(RSA_PREFIX, "Computing the RSA score...")
         result_rsa = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/src/compute_rsa.py",
@@ -168,11 +169,11 @@ class PipelineHandler:
 
         return_code_rsa = result_rsa.returncode  # return value of the process
         rsa_task_success = return_code_rsa == 0
-        print(f"Task completed: {'OK' if rsa_task_success else 'KO'}")
+        self._log_message(RSA_PREFIX, f"Task completed: {'OK' if rsa_task_success else 'KO'}")
         
         if rsa_task_success:
             rsa_path = result_rsa.stdout.split('\n')[-2]
-            print(f"RSA pickle path for the {step}: {rsa_path}")
+            self._log_message(RSA_PREFIX, f"RSA pickle path for the {step}: {rsa_path}")
             self.rsa_paths[step] = rsa_path
         else:
-            print(f"Occurred error: {result_rsa.stderr}")
+            self._log_message(RSA_PREFIX, f"Occurred error: {result_rsa.stderr}")
