@@ -232,13 +232,13 @@ class PipelineHandler:
         self._log_message(EVALUATION_PREFIX, f"Logs will be written in the {output_folder_log_files} folder")
 
         for q in key_questions:
-            metrics = evaluate_with_seahorse(abstractive_summaries, q, output_folder_log_files + '/test_abstractive.log')
+            metrics = evaluate_with_seahorse(abstractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_abstractive.log')
             abstractive_metrics.append(metrics)
 
         self._log_message(EVALUATION_PREFIX, "Evaluating Extractive Summaries:")
         extractive_metrics = []
         for q in key_questions:
-            metrics = evaluate_with_seahorse(extractive_summaries, q, output_folder_log_files + '/test_extractive.log')
+            metrics = evaluate_with_seahorse(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_extractive.log')
             extractive_metrics.append(metrics)
 
         # Print summary comparison
