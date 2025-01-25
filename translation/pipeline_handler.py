@@ -43,6 +43,7 @@ class PipelineHandler:
         self._validate_input_settings()
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
+        self.rsa_paths = {"abstractive": None, "extractive": None}
 
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")
@@ -125,7 +126,32 @@ class PipelineHandler:
             self._log_message(CANDIDATES_CREATION_PREFIX, f"Occurred error: {result_extractive.stderr}")
 
     def perform_abstractive_step(self):
-        pass
+        """
+        This methods runs the generation of candidates using the abstractive mode
+        """
+        self._log_message(CANDIDATES_CREATION_PREFIX, "Running the abstractive step.")
+        result_abstractive = subprocess.run([
+            "python",
+            f"{self.base_path}/glimpse/data_loading/generate_abstractive_candidates.py",
+            "--dataset_path", f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/{self.settings.get('dataset_name')}",
+            "--batch_size", str(self.settings.get('batch_size')),
+            "--device", str(self.settings.get('device')),
+            "--limit", str(self.settings.get('limit')),
+            "--output_dir", f"{self.base_path}/{self.settings.get('output_dir')}",
+            "--model_name", str(self.settings.get('model')),
+            "--scripted-run" if self.settings.get('print_output_path') else ''
+            ], capture_output=True, text=True)
+        
+        return_code_abstractive = result_abstractive.returncode  # return value of the process
+        task_complete_success = return_code_abstractive == 0 # Boolean indicating if the job completed successfully
+        self._log_message(CANDIDATES_CREATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
+
+        if task_complete_success:
+            self.abstractive_candidates_path = result_abstractive.stdout.split('\n')[-2]
+            self._log_message(CANDIDATES_CREATION_PREFIX, f"Abstractive dataset path: {self.extractive_candidates_path}")
+            self._perform_rsa(self.abstractive_candidates_path, 'abstractive')
+        else:
+            self._log_message(CANDIDATES_CREATION_PREFIX, f"Occurred error: {result_abstractive.stderr}")
 
     def _perform_rsa(self, candidates_path, step):
         """
@@ -145,7 +171,8 @@ class PipelineHandler:
         print(f"Task completed: {'OK' if rsa_task_success else 'KO'}")
         
         if rsa_task_success:
-            self.rsa_extractive_path = result_rsa.stdout.split('\n')[-2]
-            print(f"RSA pickle path for the {step}: {self.rsa_extractive_path}")
+            rsa_path = result_rsa.stdout.split('\n')[-2]
+            print(f"RSA pickle path for the {step}: {rsa_path}")
+            self.rsa_paths[step] = rsa_path
         else:
             print(f"Occurred error: {result_rsa.stderr}")
