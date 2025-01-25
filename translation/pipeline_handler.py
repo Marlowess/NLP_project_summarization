@@ -1,10 +1,13 @@
-import argparse
-import datetime
-from pathlib import Path
+import sys
+sys.path.append('../')
+
 import pandas as pd
 import os
 import subprocess
 from utils.path_utils import get_git_root
+from utils.analysis import create_summary_analysis
+from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse, QUESTION_MAP
+import pickle
 
 import nltk
 nltk.download('punkt_tab')
@@ -24,7 +27,8 @@ INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
     "dataset_name": ("all_reviews_2017_translated.csv", str),
     "print_output_path": (True, bool),
     "output_dir": ("data/candidates", str),
-    "rsa_output_dir": ("output", str)
+    "rsa_output_dir": ("output", str),
+    "seahorse_evaluation_key_questions": ([1, 2], list)
 }
 
 class PipelineHandler:
@@ -177,3 +181,58 @@ class PipelineHandler:
             self.rsa_paths[step] = rsa_path
         else:
             self._log_message(RSA_PREFIX, f"Occurred error: {result_rsa.stderr}")
+
+    def perform_evaluation(self, evaluation_name):
+        """
+        This method runs the evaluation step.
+        :param: evaluation_name: seahorse, batbert, common
+        """
+        # Abstractive data
+        with open(self.rsa_paths.get('abstractive'), 'rb') as f:
+            abstractive_data = pickle.load(f)
+
+        # Extractive data
+        with open(self.rsa_paths.get('extractive'), 'rb') as f:
+            extractive_data = pickle.load(f)
+
+        # Create analysis DataFrames
+        abstractive_analysis = create_summary_analysis(abstractive_data, 'abstractive')
+        extractive_analysis = create_summary_analysis(extractive_data, 'extractive')
+
+        if evaluation_name == 'seahorse':
+            self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis)
+        else:
+            raise Exception(f"Evaluation named {evaluation_name} not implemented yet")
+
+        # Combine the analyses
+        # combined_analysis = pd.concat([abstractive_analysis, extractive_analysis])
+
+    def _perform_seahorse_evaluation(self, abstractive_summaries, extractive_summaries):
+        """
+        Seahorse evaluation
+        """
+        print("Evaluating Abstractive Summaries:")
+        key_questions = self.settings.get('seahorse_evaluation_key_questions')
+        abstractive_metrics = []
+        for q in key_questions:
+            metrics = evaluate_with_seahorse(abstractive_summaries, q)
+            abstractive_metrics.append(metrics)
+
+        print("Evaluating Extractive Summaries:")
+        extractive_metrics = []
+        for q in key_questions:
+            metrics = evaluate_with_seahorse(extractive_summaries, q)
+            extractive_metrics.append(metrics)
+
+        # Print summary comparison
+        print("Summary of Results:")
+        for i, q in enumerate(key_questions):
+            print(f"\n{QUESTION_MAP[q]} Metric:")
+            print(f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+            print(f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+
+    def _perform_bartbert_evaluation(self):
+        pass
+
+    def perform_common_metrics_evaluation(self):
+        pass
