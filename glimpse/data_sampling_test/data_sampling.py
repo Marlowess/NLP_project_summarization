@@ -3,7 +3,7 @@ import argparse
 import os
 
 def main():
-    parser = argparse.ArgumentParser(description="Esegui il sampling di record da un file CSV.")
+    parser = argparse.ArgumentParser()
     parser.add_argument("file_path", type=str)
     #parser.add_argument("output_file", type=str, default="samples.csv", required=False)
     parser.add_argument("sample_fraction", type=float)
@@ -22,12 +22,13 @@ def main():
     output_dir = os.path.dirname('data/test/samples.csv')
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
-        print(f"Directory '{output_dir}' creata.")
+        print(f"Directory '{output_dir}' created.")
 
-    # Eseguire il sampling
-    sampled_data = data.sample(frac=args.sample_fraction, random_state=42)
+    # sample by id (e.g. if i got 100 id i want % of id and all the reviews for those id)
+    unique_ids = data['id'].unique()
+    sampled_ids = pd.Series(unique_ids).sample(frac=args.sample_fraction, random_state=42)
+    sampled_data = data[data['id'].isin(sampled_ids)]
 
-    # Salvare il campione in un file di output
     sampled_data.to_csv('data/test/samples.csv', index=False)
     print(f"Sampling completed. File saved as samples.csv.")
 
