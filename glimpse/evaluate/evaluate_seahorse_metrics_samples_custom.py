@@ -2,6 +2,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import pandas as pd
 from tqdm import tqdm
+import sys
 
 QUESTION_MAP = {
     1: "Comprehensible",
@@ -12,7 +13,12 @@ QUESTION_MAP = {
     6: "Conciseness"
 }
 
-def evaluate_with_seahorse(summaries_df, question_num, batch_size=4, device="cuda"):
+def evaluate_with_seahorse(summaries_df, question_num, batch_size=4, device="cuda", output_log_file_path=None):
+    
+    if output_log_file_path:
+        file = open(output_log_file_path, 'w')
+        sys.stdout = file
+
     # Take only first 10 samples
     summaries_df = summaries_df.head(10)
 
@@ -25,7 +31,7 @@ def evaluate_with_seahorse(summaries_df, question_num, batch_size=4, device="cud
     # Create pairs of texts and print them for inspection
     print(f"\nEvaluating for {QUESTION_MAP[question_num]}:")
     for i, row in summaries_df.iterrows():
-        print(f"\nSample {i+1}:")
+        print(f"Sample {i+1}:")
         print(f"Gold: {row['gold'][:200]}...")
         print(f"Generated: {row['best_rsa_summary'][:200]}...")
 
@@ -64,7 +70,11 @@ def evaluate_with_seahorse(summaries_df, question_num, batch_size=4, device="cud
 
     # Print probabilities for each sample
     df_metrics = pd.DataFrame(metrics)
-    print("\nProbabilities for each sample:")
+    print("Probabilities for each sample:")
     print(df_metrics)
+
+    if output_log_file_path:
+        sys.stdout = sys.__stdout__ # Recover the standard output
+        file.close() # Close the log file
 
     return df_metrics

@@ -17,6 +17,7 @@ CANDIDATES_CREATION_PREFIX="[CANDIDATES-CREATION]"
 INIT_STEP_PREFIX="[INIT]"
 PREPROCESSING_PREFIX="[PREPROCESSING]"
 RSA_PREFIX="[RSA]"
+EVALUATION_PREFIX="[EVALUATION]"
 
 PROCESSED_DATA_PATH="{root_path}/data/processed"
 INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
@@ -29,7 +30,8 @@ INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
     "output_dir": ("data/candidates", str),
     "rsa_output_dir": ("output", str),
     "seahorse_evaluation_key_questions": ([1, 2], list),
-    "input_files_to_process": (["all_reviews_2017_translated.csv"], list)
+    "input_files_to_process": (["all_reviews_2017_translated.csv"], list),
+    "output_log_files_path": ("output/logs", str)
 }
 
 class PipelineHandler:
@@ -53,6 +55,14 @@ class PipelineHandler:
 
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")
+
+    def _create_folder_if_not_exists(self, path):
+        """
+        This utility method checks if a folder already exists.
+        If it does not exist, it creates it.
+        """
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     def _validate_input_settings(self):
         """
@@ -90,8 +100,7 @@ class PipelineHandler:
         This method processes input data and prepare them to perform the pipeline
         """
         self._log_message(PREPROCESSING_PREFIX, "Preparing input files")
-        if not os.path.exists(PROCESSED_DATA_PATH.format(root_path=self.base_path)):
-            os.makedirs(PROCESSED_DATA_PATH.format(root_path=self.base_path))
+        self._create_folder_if_not_exists(PROCESSED_DATA_PATH.format(root_path=self.base_path))
 
         for file in self.settings.get('input_files_to_process'):
             try:
@@ -188,49 +197,56 @@ class PipelineHandler:
         This method runs the evaluation step.
         :param: evaluation_name: seahorse, batbert, common
         """
-        # Abstractive data
+
+        # Check if the output folder for logs already exists
+        output_folder_log_files = self.base_path + '/' + self.settings.get('output_log_files_path')
+        self._create_folder_if_not_exists(output_folder_log_files)
+
+        # Get the abstractive data
         with open(self.rsa_paths.get('abstractive'), 'rb') as f:
             abstractive_data = pickle.load(f)
 
-        # Extractive data
+        # Get the extractive data
         with open(self.rsa_paths.get('extractive'), 'rb') as f:
             extractive_data = pickle.load(f)
 
-        # Create analysis DataFrames
+        # Create the analysis dataframes
         abstractive_analysis = create_summary_analysis(abstractive_data, 'abstractive')
         extractive_analysis = create_summary_analysis(extractive_data, 'extractive')
 
         if evaluation_name == 'seahorse':
-            self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis)
+            self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis, output_folder_log_files)
         else:
             raise Exception(f"Evaluation named {evaluation_name} not implemented yet")
 
         # Combine the analyses
         # combined_analysis = pd.concat([abstractive_analysis, extractive_analysis])
 
-    def _perform_seahorse_evaluation(self, abstractive_summaries, extractive_summaries):
+    def _perform_seahorse_evaluation(self, abstractive_summaries, extractive_summaries, output_folder_log_files):
         """
         Seahorse evaluation
         """
-        print("Evaluating Abstractive Summaries:")
+        self._log_message(EVALUATION_PREFIX, "Evaluating Abstractive Summaries.")
         key_questions = self.settings.get('seahorse_evaluation_key_questions')
         abstractive_metrics = []
+        self._log_message(EVALUATION_PREFIX, f"Logs will be written in the {output_folder_log_files} folder")
+
         for q in key_questions:
-            metrics = evaluate_with_seahorse(abstractive_summaries, q)
+            metrics = evaluate_with_seahorse(abstractive_summaries, q, output_folder_log_files + '/test_abstractive.log')
             abstractive_metrics.append(metrics)
 
-        print("Evaluating Extractive Summaries:")
+        self._log_message(EVALUATION_PREFIX, "Evaluating Extractive Summaries:")
         extractive_metrics = []
         for q in key_questions:
-            metrics = evaluate_with_seahorse(extractive_summaries, q)
+            metrics = evaluate_with_seahorse(extractive_summaries, q, output_folder_log_files + '/test_extractive.log')
             extractive_metrics.append(metrics)
 
         # Print summary comparison
-        print("Summary of Results:")
+        self._log_message(EVALUATION_PREFIX, "Summary of Results:")
         for i, q in enumerate(key_questions):
-            print(f"\n{QUESTION_MAP[q]} Metric:")
-            print(f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
-            print(f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+            self._log_message(EVALUATION_PREFIX, f"{QUESTION_MAP[q]} Metric:")
+            self._log_message(EVALUATION_PREFIX, f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+            self._log_message(EVALUATION_PREFIX, f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
 
     def _perform_bartbert_evaluation(self):
         pass
