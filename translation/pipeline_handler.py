@@ -4,37 +4,15 @@ sys.path.append('../')
 import pandas as pd
 import os
 import subprocess
-from utils.path_utils import get_git_root
 from utils.analysis import create_summary_analysis
 from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse, QUESTION_MAP
 import pickle
+from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH
+from handler_abstract import AbstractHandler
 
 import nltk
 nltk.download('punkt_tab')
-
-VALIDATION_PREFIX="[VALIDATION]"
-CANDIDATES_CREATION_PREFIX="[CANDIDATES-CREATION]"
-INIT_STEP_PREFIX="[INIT]"
-PREPROCESSING_PREFIX="[PREPROCESSING]"
-RSA_PREFIX="[RSA]"
-EVALUATION_PREFIX="[EVALUATION]"
-
-PROCESSED_DATA_PATH="{root_path}/data/processed"
-INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
-    "abstractive_model": ("facebook/bart-large-cnn", str),
-    "batch_size": (8, int),
-    "device": ("cuda", str),
-    "limit": (1, int),
-    "dataset_name": ("all_reviews_2017_translated.csv", str),
-    "print_output_path": (True, bool),
-    "output_dir": ("data/candidates", str),
-    "rsa_output_dir": ("output", str),
-    "seahorse_evaluation_key_questions": ([1, 2], list),
-    "input_files_to_process": (["all_reviews_2017_translated.csv"], list),
-    "output_log_files_path": ("output/logs", str)
-}
-
-class PipelineHandler:
+class PipelineHandler(AbstractHandler):
     """
     This class handles all the operations related to the multi-language extension.
     It takes a configuration dictionary as a JSON and performs all the steps needed to complete the pipeline: 
@@ -42,19 +20,13 @@ class PipelineHandler:
     - generation of extractive and abstractive candidates
     - RSA computation
     - Evalutation using different approaches
-    - TODO: model fine tuning
     """
     
     def __init__(self, settings):
-        self.base_path = get_git_root()
-        self.settings = settings
-        self._validate_input_settings()
+        super(PipelineHandler, self).__init__(settings) # Call the superclass init
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
         self.rsa_paths = {"abstractive": None, "extractive": None}
-
-    def _log_message(self, prefix, message):
-        print(f"{prefix} {message}")
 
     def _create_folder_if_not_exists(self, path):
         """
@@ -63,37 +35,6 @@ class PipelineHandler:
         """
         if not os.path.exists(path):
             os.makedirs(path)
-
-    def _validate_input_settings(self):
-        """
-        This methods validates the input settings
-        """
-        self._log_message(INIT_STEP_PREFIX, f"Validating the provided settings")
-        for k, t in INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT.items():
-            default_value, default_type = t[0], t[1] # default_value and item type
-
-            # Check if the input settings dict contains this key
-            if k in self.settings:
-                setting_item = self.settings.get(k) # Get the settings item in order to validate it
-                if type(setting_item) != default_type:
-                    # Trying to cast it to the right type
-                    self._log_message(VALIDATION_PREFIX, f"Key {k} should be of type {default_type}, but received {type(setting_item)}")
-                    self._log_message(VALIDATION_PREFIX, f"Trying to cast it")
-                    try:
-                        final_item = default_type(setting_item)
-                        self._log_message(VALIDATION_PREFIX, f"Cast completed")
-                        self._log_message(VALIDATION_PREFIX, f"Setting {k} to the casted value {final_item}")
-                        self.settings[k] = final_item
-                    except ValueError:
-                        self._log_message(VALIDATION_PREFIX, f"Cannot setting {k}(setting_item) to {default_type}")
-                        self._log_message(VALIDATION_PREFIX, f"Setting its default value: {default_value}")
-                        self.settings[k] = default_value
-            else:
-                # Matching datatype
-                self._log_message(VALIDATION_PREFIX, f"Item {k} not found in the received settings")
-                self._log_message(VALIDATION_PREFIX, f"Adding {k} setting with the default value {default_value}")
-                self.settings[k] = default_value
-        self._log_message(INIT_STEP_PREFIX, f"Validation completed")
 
     def _process_input_data(self):
         """
