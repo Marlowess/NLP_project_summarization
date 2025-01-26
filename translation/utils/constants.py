@@ -12,11 +12,11 @@ INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE = {
     "batch_size": (8, int),
     "device": ("cuda", str),
     "limit": (1, int),
-    "dataset_name": ("all_reviews_2017_translated.csv", str),
+    "dataset_name": ("all_reviews_2017_italian.csv", str),
     "print_output_path": (True, bool),
     "output_dir": ("data/candidates", str),
     "rsa_output_dir": ("output", str),
     "seahorse_evaluation_key_questions": ([1, 2], list),
-    "input_files_to_process": (["all_reviews_2017_translated.csv"], list),
+    "input_files_to_process": (["all_reviews_2017_italian.csv"], list),
     "output_log_files_path": ("output/logs", str)
 }

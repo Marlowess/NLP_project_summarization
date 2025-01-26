@@ -6,7 +6,7 @@ def main():
         "batch_size": 8,
         "device": "cpu",
         "limit": 8,
-        "dataset_name": "all_reviews_2017_translated.csv",
+        "dataset_name": "all_reviews_2017_italian.csv",
         "print_output_path": True
     }
     
