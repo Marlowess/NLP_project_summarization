@@ -18,16 +18,10 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def prepare_dataset(dataset_name, dataset_path="rsasumm/data/processed/"):
+def prepare_dataset(dataset_name, dataset_path="data/test/"):
     dataset_path = Path(dataset_path)
-    if dataset_name == "amazon":
-        dataset = pd.read_csv(dataset_path / "amazon_test.csv")
-    elif dataset_name == "space":
-        dataset = pd.read_csv(dataset_path / "space.csv")
-    elif dataset_name == "yelp":
-        dataset = pd.read_csv(dataset_path / "yelp_test.csv")
-    elif dataset_name == "reviews":
-        dataset = pd.read_csv(dataset_path / "test_metareviews.csv")
+    if dataset_name == "reviews":
+        dataset = pd.read_csv(dataset_path / "samples.csv")
     else:
         raise ValueError(f"Unknown dataset {dataset_name}")
 

@@ -10,3 +10,4 @@ SentencePiece
 bert-extractive-summarizer
 lexrank
 openai
+sumy
