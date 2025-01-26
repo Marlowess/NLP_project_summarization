@@ -7,7 +7,7 @@ RSA_PREFIX="[RSA]"
 EVALUATION_PREFIX="[EVALUATION]"
 
 PROCESSED_DATA_PATH="{root_path}/data/processed"
-INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT = {
+INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE = {
     "abstractive_model": ("facebook/bart-large-cnn", str),
     "batch_size": (8, int),
     "device": ("cuda", str),

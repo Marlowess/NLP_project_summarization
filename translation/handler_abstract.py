@@ -1,25 +1,25 @@
 from abc import ABC
-from utils.constants import INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT, VALIDATION_PREFIX, INIT_STEP_PREFIX
+from utils.constants import VALIDATION_PREFIX, INIT_STEP_PREFIX
 from utils.path_utils import get_git_root
 
 class AbstractHandler(ABC):
     """
     This is an abstract class for handlers implementation
     """
-    def __init__(self, settings):
+    def __init__(self, settings, default_dict):
         self.base_path = get_git_root()
         self.settings = settings
-        self._validate_input_settings()
+        self._validate_input_settings(default_dict)
     
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")
 
-    def _validate_input_settings(self):
+    def _validate_input_settings(self, default_dict):
         """
         This methods validates the input settings
         """
         self._log_message(INIT_STEP_PREFIX, f"Validating the provided settings")
-        for k, t in INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT.items():
+        for k, t in default_dict.items():
             default_value, default_type = t[0], t[1] # default_value and item type
 
             # Check if the input settings dict contains this key

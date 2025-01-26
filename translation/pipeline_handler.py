@@ -7,7 +7,7 @@ import subprocess
 from utils.analysis import create_summary_analysis
 from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse, QUESTION_MAP
 import pickle
-from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH
+from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
 from handler_abstract import AbstractHandler
 
 import nltk
@@ -23,7 +23,7 @@ class PipelineHandler(AbstractHandler):
     """
     
     def __init__(self, settings):
-        super(PipelineHandler, self).__init__(settings) # Call the superclass init
+        super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE) # Call the superclass init
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
         self.rsa_paths = {"abstractive": None, "extractive": None}
