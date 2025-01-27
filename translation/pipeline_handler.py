@@ -10,6 +10,7 @@ import pickle
 from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
 from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR
 from handler_abstract import AbstractHandler
+from contextlib import redirect_stdout
 
 import nltk
 nltk.download('punkt_tab')
@@ -191,12 +192,15 @@ class PipelineHandler(AbstractHandler):
             metrics = evaluate_with_seahorse_custom(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/extractive.log')
             extractive_metrics.append(metrics)
 
-        # Print summary comparison
-        self._log_message(EVALUATION_PREFIX, "Summary of Results:")
-        for i, q in enumerate(key_questions):
-            self._log_message(EVALUATION_PREFIX, f"{QUESTION_MAP[q]} Metric:")
-            self._log_message(EVALUATION_PREFIX, f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
-            self._log_message(EVALUATION_PREFIX, f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+        # Print summary comparisons
+        output_summary_log_file = self.output_logs_dir + '/summary.log'
+        context = open(output_summary_log_file, "w")
+        with context as file, (redirect_stdout(file)):
+            self._log_message(EVALUATION_PREFIX, "Summary of Results:")
+            for i, q in enumerate(key_questions):
+                self._log_message(EVALUATION_PREFIX, f"{QUESTION_MAP[q]} Metric:")
+                self._log_message(EVALUATION_PREFIX, f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+                self._log_message(EVALUATION_PREFIX, f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
 
     def _perform_bartbert_evaluation(self):
         pass

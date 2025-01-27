@@ -2,7 +2,6 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import pandas as pd
 from tqdm import tqdm
-import sys
 from contextlib import redirect_stdout, nullcontext
 
 QUESTION_MAP = {
