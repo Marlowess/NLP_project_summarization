@@ -1,6 +1,7 @@
 from abc import ABC
 from utils.constants import VALIDATION_PREFIX, INIT_STEP_PREFIX
 from utils.path_utils import get_git_root
+import datetime
 
 class AbstractHandler(ABC):
     """
@@ -10,6 +11,7 @@ class AbstractHandler(ABC):
         self.base_path = get_git_root()
         self.settings = settings
         self._validate_input_settings(default_dict)
+        self.run_timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")

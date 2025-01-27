@@ -8,6 +8,7 @@ from utils.analysis import create_summary_analysis
 from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse_custom, QUESTION_MAP
 import pickle
 from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
+from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR
 from handler_abstract import AbstractHandler
 
 import nltk
@@ -24,6 +25,14 @@ class PipelineHandler(AbstractHandler):
     
     def __init__(self, settings):
         super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE) # Call the superclass init
+        
+        # Paths and prefixes
+        self.input_data_path = INPUT_DATA_PATH.format(root_path=self.base_path)
+        self.processed_data_path = PROCESSED_DATA_PATH.format(root_path=self.base_path, run_timestap=self.run_timestamp)
+        self.candidates_output_path = CANDIDATES_OUTPUT_PATH.format(root_path=self.base_path, run_timestap=self.run_timestamp)
+        self.rsa_output_dir = RSA_OUTPUT_DIR.format(root_path=self.base_path, run_timestap=self.run_timestamp)
+        self.output_logs_dir = OUTPUT_LOGS_DIR.format(root_path=self.base_path, run_timestap=self.run_timestamp)
+        
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
         self.rsa_paths = {"abstractive": None, "extractive": None}
@@ -41,16 +50,16 @@ class PipelineHandler(AbstractHandler):
         This method processes input data and prepare them to perform the pipeline
         """
         self._log_message(PREPROCESSING_PREFIX, "Preparing input files")
-        self._create_folder_if_not_exists(PROCESSED_DATA_PATH.format(root_path=self.base_path))
+        self._create_folder_if_not_exists(self.processed_data_path)
 
         for file in self.settings.get('input_files_to_process'):
             try:
-                dataset = pd.read_csv(f"{self.base_path}/data/{file}")
+                dataset = pd.read_csv(f"{self.input_data_path}/{file}")
                 sub_dataset = dataset[['id','review', 'metareview']]
                 sub_dataset.rename(columns={"review": "text", "metareview": "gold"}, inplace=True)
                 self._log_message(PREPROCESSING_PREFIX, f"File {file} found. Managing it.")
 
-                output_file_path = f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/{file}"
+                output_file_path = f"{self.processed_data_path}/{file}"
                 sub_dataset.to_csv(output_file_path, index=False)
                 self._log_message(PREPROCESSING_PREFIX, f"Saved file at {output_file_path}")
             except:
@@ -64,9 +73,9 @@ class PipelineHandler(AbstractHandler):
         result_extractive = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/data_loading/generate_extractive_candidates.py",
-            "--dataset_path", f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/{self.settings.get('dataset_name')}",
+            "--dataset_path", f"{self.processed_data_path}/{self.settings.get('dataset_name')}",
             "--limit", str(self.settings.get('limit')),
-            "--output_dir", f"{self.base_path}/{self.settings.get('output_dir')}",
+            "--output_dir", self.candidates_output_path,
             "--scripted-run" if self.settings.get('print_output_path') else ''
             ], capture_output=True, text=True)
 
@@ -89,11 +98,11 @@ class PipelineHandler(AbstractHandler):
         result_abstractive = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/data_loading/generate_abstractive_candidates.py",
-            "--dataset_path", f"{PROCESSED_DATA_PATH.format(root_path=self.base_path)}/{self.settings.get('dataset_name')}",
+            "--dataset_path", f"{self.processed_data_path}/{self.settings.get('dataset_name')}",
             "--batch_size", str(self.settings.get('batch_size')),
             "--device", str(self.settings.get('device')),
             "--limit", str(self.settings.get('limit')),
-            "--output_dir", f"{self.base_path}/{self.settings.get('output_dir')}",
+            "--output_dir", self.candidates_output_path,
             "--model_name", str(self.settings.get('abstractive_model')),
             "--scripted-run" if self.settings.get('print_output_path') else ''
             ], capture_output=True, text=True)
@@ -118,7 +127,7 @@ class PipelineHandler(AbstractHandler):
             "python",
             f"{self.base_path}/glimpse/src/compute_rsa.py",
             "--summaries", candidates_path,
-            "--output_dir", f"{self.base_path}/{self.settings.get('rsa_output_dir')}",
+            "--output_dir", self.rsa_output_dir,
             "--scripted-run" if self.settings.get('print_output_path') else ''
             ], capture_output=True, text=True)
 
@@ -140,8 +149,8 @@ class PipelineHandler(AbstractHandler):
         """
 
         # Check if the output folder for logs already exists
-        output_folder_log_files = self.base_path + '/' + self.settings.get('output_log_files_path')
-        self._create_folder_if_not_exists(output_folder_log_files)
+        # output_folder_log_files = self.base_path + '/' + self.settings.get('output_log_files_path')
+        self._create_folder_if_not_exists(self.output_logs_dir)
 
         # Get the abstractive data
         with open(self.rsa_paths.get('abstractive'), 'rb') as f:
@@ -156,7 +165,7 @@ class PipelineHandler(AbstractHandler):
         extractive_analysis = create_summary_analysis(extractive_data, 'extractive')
 
         if evaluation_name == 'seahorse':
-            self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis, output_folder_log_files)
+            self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis, self.output_logs_dir)
         else:
             raise Exception(f"Evaluation named {evaluation_name} not implemented yet")
 
@@ -173,13 +182,13 @@ class PipelineHandler(AbstractHandler):
         self._log_message(EVALUATION_PREFIX, f"Logs will be written in the {output_folder_log_files} folder")
 
         for q in key_questions:
-            metrics = evaluate_with_seahorse_custom(abstractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_abstractive.log')
+            metrics = evaluate_with_seahorse_custom(abstractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/abstractive.log')
             abstractive_metrics.append(metrics)
 
         self._log_message(EVALUATION_PREFIX, "Evaluating Extractive Summaries:")
         extractive_metrics = []
         for q in key_questions:
-            metrics = evaluate_with_seahorse_custom(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_extractive.log')
+            metrics = evaluate_with_seahorse_custom(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/extractive.log')
             extractive_metrics.append(metrics)
 
         # Print summary comparison
