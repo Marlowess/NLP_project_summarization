@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import subprocess
 from utils.analysis import create_summary_analysis
-from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse, QUESTION_MAP
+from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse_custom, QUESTION_MAP
 import pickle
 from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
 from handler_abstract import AbstractHandler
@@ -173,13 +173,13 @@ class PipelineHandler(AbstractHandler):
         self._log_message(EVALUATION_PREFIX, f"Logs will be written in the {output_folder_log_files} folder")
 
         for q in key_questions:
-            metrics = evaluate_with_seahorse(abstractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_abstractive.log')
+            metrics = evaluate_with_seahorse_custom(abstractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_abstractive.log')
             abstractive_metrics.append(metrics)
 
         self._log_message(EVALUATION_PREFIX, "Evaluating Extractive Summaries:")
         extractive_metrics = []
         for q in key_questions:
-            metrics = evaluate_with_seahorse(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_extractive.log')
+            metrics = evaluate_with_seahorse_custom(extractive_summaries, q, 4, self.settings.get('device'), output_folder_log_files + '/test_extractive.log')
             extractive_metrics.append(metrics)
 
         # Print summary comparison
