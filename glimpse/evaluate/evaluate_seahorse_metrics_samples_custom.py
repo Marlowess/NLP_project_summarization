@@ -29,6 +29,7 @@ def evaluate_with_seahorse_custom(summaries_df, question_num, batch_size=4, devi
         template = "premise: {premise} hypothesis: {hypothesis}"
 
         # Create pairs of texts and print them for inspection
+        print(f"--- SEAHORSE ---")
         print(f"\nEvaluating for {QUESTION_MAP[question_num]}:")
         for i, row in summaries_df.iterrows():
             print(f"Sample {i+1}:")
@@ -72,5 +73,6 @@ def evaluate_with_seahorse_custom(summaries_df, question_num, batch_size=4, devi
         df_metrics = pd.DataFrame(metrics)
         print("Probabilities for each sample:")
         print(df_metrics)
+        print(f"--- END SEAHORSE ---\n\n")
 
         return df_metrics

@@ -214,11 +214,13 @@ class PipelineHandler(AbstractHandler):
         output_summary_log_file = self.output_logs_dir + '/summary.log'
         context = open(output_summary_log_file, "w")
         with context as file, (redirect_stdout(file)):
+            self._log_message(EVALUATION_PREFIX, "--- SEAHORSE ---")
             self._log_message(EVALUATION_PREFIX, "Summary of Results:")
             for i, q in enumerate(key_questions):
                 self._log_message(EVALUATION_PREFIX, f"{QUESTION_MAP[q]} Metric:")
                 self._log_message(EVALUATION_PREFIX, f"Abstractive average: {abstractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
                 self._log_message(EVALUATION_PREFIX, f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
+            self._log_message(EVALUATION_PREFIX, "--- End of Summary ---\n\n")
 
     def _perform_bartbert_evaluation(self):
         pass
