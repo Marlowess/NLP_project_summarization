@@ -24,19 +24,22 @@ class PipelineHandler(AbstractHandler):
     - Evalutation using different approaches
     """
     
-    def __init__(self, settings):
-        super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE) # Call the superclass init
+    def __init__(self, settings, old_run: str = None):
+        super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE, old_run) # Call the superclass init
         
         # Paths and prefixes
         self.input_data_path = INPUT_DATA_PATH.format(root_path=self.base_path)
-        self.processed_data_path = PROCESSED_DATA_PATH.format(root_path=self.base_path, run_timestap=self.run_timestamp)
-        self.candidates_output_path = CANDIDATES_OUTPUT_PATH.format(root_path=self.base_path, run_timestap=self.run_timestamp)
-        self.rsa_output_dir = RSA_OUTPUT_DIR.format(root_path=self.base_path, run_timestap=self.run_timestamp)
-        self.output_logs_dir = OUTPUT_LOGS_DIR.format(root_path=self.base_path, run_timestap=self.run_timestamp)
+        self.processed_data_path = PROCESSED_DATA_PATH.format(output_path=self.output_path, run_name=self.run_name)
+        self.candidates_output_path = CANDIDATES_OUTPUT_PATH.format(output_path=self.output_path, run_name=self.run_name)
+        self.rsa_output_dir = RSA_OUTPUT_DIR.format(output_path=self.output_path, run_name=self.run_name)
+        self.output_logs_dir = OUTPUT_LOGS_DIR.format(output_path=self.output_path, run_name=self.run_name)
         
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
-        self.rsa_paths = {"abstractive": None, "extractive": None}
+        self.rsa_paths = {
+            "abstractive": None if not self.old_run_loaded else self._find_file_with_wildcard(f"{self.rsa_output_dir}/abstractive", "*.pk"), 
+            "extractive": None if not self.old_run_loaded else self._find_file_with_wildcard(f"{self.rsa_output_dir}/extractive", "*.pk")
+        }
 
     def _create_folder_if_not_exists(self, path):
         """
@@ -50,6 +53,9 @@ class PipelineHandler(AbstractHandler):
         """
         This method processes input data and prepare them to perform the pipeline
         """
+        if self.old_run_loaded:
+            self._log_message(PREPROCESSING_PREFIX, "Old run loaded. Skipping preprocessing.")
+            return
         self._log_message(PREPROCESSING_PREFIX, "Preparing input files")
         self._create_folder_if_not_exists(self.processed_data_path)
 
@@ -70,6 +76,10 @@ class PipelineHandler(AbstractHandler):
         """
         This methods runs the generation of candidates using the extractive mode
         """
+        if self.old_run_loaded:
+            self._log_message(CANDIDATES_CREATION_PREFIX, "Old run loaded. Skipping extractive step.")
+            return
+        
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the extractive step.")
         result_extractive = subprocess.run([
             "python",
@@ -95,6 +105,10 @@ class PipelineHandler(AbstractHandler):
         """
         This methods runs the generation of candidates using the abstractive mode
         """
+        if self.old_run_loaded:
+            self._log_message(CANDIDATES_CREATION_PREFIX, "Old run loaded. Skipping abstractive step.")
+            return
+        
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the abstractive step.")
         result_abstractive = subprocess.run([
             "python",
@@ -123,12 +137,16 @@ class PipelineHandler(AbstractHandler):
         """
         This method receives path of candidates record and performs the RSA method on them
         """
+        if self.old_run_loaded: # Skip if the old run is loaded
+            self._log_message(RSA_PREFIX, f"Old run loaded. Skipping RSA for {step} step.")
+            return
+        
         self._log_message(RSA_PREFIX, "Computing the RSA score...")
         result_rsa = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/src/compute_rsa.py",
             "--summaries", candidates_path,
-            "--output_dir", self.rsa_output_dir,
+            "--output_dir", f"{self.rsa_output_dir}/{step}",
             "--scripted-run" if self.settings.get('print_output_path') else ''
             ], capture_output=True, text=True)
 

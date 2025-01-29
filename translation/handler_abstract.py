@@ -1,20 +1,38 @@
 from abc import ABC
-from utils.constants import VALIDATION_PREFIX, INIT_STEP_PREFIX
+from utils.constants import VALIDATION_PREFIX, INIT_STEP_PREFIX, OUTPUT_PATH
 from utils.path_utils import get_git_root
 import datetime
+import os, glob
 
 class AbstractHandler(ABC):
     """
     This is an abstract class for handlers implementation
     """
-    def __init__(self, settings, default_dict):
+    def __init__(self, settings, default_dict, old_run):
         self.base_path = get_git_root()
+        self.output_path = OUTPUT_PATH.format(root_path=self.base_path)
         self.settings = settings
         self._validate_input_settings(default_dict)
-        self.run_timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        self._check_old_run_and_set_run_name(old_run)
+        # self.run_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")
+
+    def _check_old_run_and_set_run_name(self, old_run):
+        """
+        This method checks if the old run is present in the output path
+        """
+        self._log_message(INIT_STEP_PREFIX, f"Checking if the old run is present")
+        if os.path.exists(f"{self.output_path}/{old_run}"):
+            self._log_message(INIT_STEP_PREFIX, f"Old run {old_run} found")
+            self.run_name = old_run
+            self.old_run_loaded = True
+        else:
+            self._log_message(INIT_STEP_PREFIX, f"Old run {old_run} not found")
+            self.run_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            self._log_message(INIT_STEP_PREFIX, f"Setting the new run name to {self.run_name}")
+            self.old_run_loaded = False
 
     def _validate_input_settings(self, default_dict):
         """
@@ -46,3 +64,14 @@ class AbstractHandler(ABC):
                 self._log_message(VALIDATION_PREFIX, f"Adding {k} setting with the default value {default_value}")
                 self.settings[k] = default_value
         self._log_message(INIT_STEP_PREFIX, f"Validation completed")
+
+    def _find_file_with_wildcard(self, directory, pattern):
+        self._log_message(INIT_STEP_PREFIX, f"Searching for the file with pattern {pattern} in directory {directory}")
+        search_pattern = os.path.join(directory, pattern)
+        files = glob.glob(search_pattern)
+        if files:
+            self._log_message(INIT_STEP_PREFIX, f"Found file {files[0]}")
+            return files[0]  # Get the first file
+        else:
+            self._log_message(INIT_STEP_PREFIX, f"File with pattern {pattern} not found in directory {directory}")
+            return None

@@ -7,10 +7,11 @@ RSA_PREFIX="[RSA]"
 EVALUATION_PREFIX="[EVALUATION]"
 
 INPUT_DATA_PATH="{root_path}/data"
-PROCESSED_DATA_PATH="{root_path}/output/run_{run_timestap}/data/processed"
-OUTPUT_LOGS_DIR="{root_path}/output/run_{run_timestap}/logs"
-CANDIDATES_OUTPUT_PATH="{root_path}/output/run_{run_timestap}/data/candidates"
-RSA_OUTPUT_DIR="{root_path}/output/run_{run_timestap}/data/rsa"
+OUTPUT_PATH="{root_path}/output"
+PROCESSED_DATA_PATH="{output_path}/{run_name}/data/processed"
+OUTPUT_LOGS_DIR="{output_path}/{run_name}/logs"
+CANDIDATES_OUTPUT_PATH="{output_path}/{run_name}/data/candidates"
+RSA_OUTPUT_DIR="{output_path}/{run_name}/data/rsa"
 
 INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE = {
     "abstractive_model": ("facebook/bart-large-cnn", str),
