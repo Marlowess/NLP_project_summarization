@@ -8,7 +8,7 @@ from utils.analysis import create_summary_analysis
 from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse_custom, QUESTION_MAP
 import pickle
 from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
-from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR
+from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR, WARNING_PREFIX
 from handler_abstract import AbstractHandler
 from contextlib import redirect_stdout
 
@@ -24,8 +24,8 @@ class PipelineHandler(AbstractHandler):
     - Evalutation using different approaches
     """
     
-    def __init__(self, settings, old_run: str = None):
-        super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE, old_run) # Call the superclass init
+    def __init__(self, settings, run_name: str = None):
+        super(PipelineHandler, self).__init__(settings, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE, run_name) # Call the superclass init
         
         # Paths and prefixes
         self.input_data_path = INPUT_DATA_PATH.format(root_path=self.base_path)
@@ -33,7 +33,7 @@ class PipelineHandler(AbstractHandler):
         self.candidates_output_path = CANDIDATES_OUTPUT_PATH.format(output_path=self.output_path, run_name=self.run_name)
         self.rsa_output_dir = RSA_OUTPUT_DIR.format(output_path=self.output_path, run_name=self.run_name)
         self.output_logs_dir = OUTPUT_LOGS_DIR.format(output_path=self.output_path, run_name=self.run_name)
-        
+        self.safe_mode = True if self.old_run_loaded else False # Safe mode is enabled by default if the old run is loaded
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
         self._process_input_data()
         self.rsa_paths = {
@@ -49,14 +49,28 @@ class PipelineHandler(AbstractHandler):
         if not os.path.exists(path):
             os.makedirs(path)
 
+    def set_safe_mode(self, safe_mode: bool):
+        """
+        This method sets the safe mode for the pipeline
+        """
+        self.safe_mode = safe_mode
+
+    def _check_safe_mode(self):
+        """
+        This method checks if the safe mode is enabled
+        """
+        if self.safe_mode:
+            self._log_message(WARNING_PREFIX, "Safe mode enabled. Skipping the operation.")
+            self._log_message(WARNING_PREFIX, "If you want to disable it, please call the set_safe_mode method with False as argument.")
+            return True
+        return False
+
     def _process_input_data(self):
         """
         This method processes input data and prepare them to perform the pipeline
         """
-        if self.old_run_loaded:
-            self._log_message(PREPROCESSING_PREFIX, "Old run loaded. Skipping preprocessing.")
-            return
         self._log_message(PREPROCESSING_PREFIX, "Preparing input files")
+        if self._check_safe_mode(): return
         self._create_folder_if_not_exists(self.processed_data_path)
 
         for file in self.settings.get('input_files_to_process'):
@@ -76,11 +90,8 @@ class PipelineHandler(AbstractHandler):
         """
         This methods runs the generation of candidates using the extractive mode
         """
-        if self.old_run_loaded:
-            self._log_message(CANDIDATES_CREATION_PREFIX, "Old run loaded. Skipping extractive step.")
-            return
-        
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the extractive step.")
+        if self._check_safe_mode(): return
         result_extractive = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/data_loading/generate_extractive_candidates.py",
@@ -105,11 +116,8 @@ class PipelineHandler(AbstractHandler):
         """
         This methods runs the generation of candidates using the abstractive mode
         """
-        if self.old_run_loaded:
-            self._log_message(CANDIDATES_CREATION_PREFIX, "Old run loaded. Skipping abstractive step.")
-            return
-        
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the abstractive step.")
+        if self._check_safe_mode(): return
         result_abstractive = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/data_loading/generate_abstractive_candidates.py",
@@ -137,11 +145,8 @@ class PipelineHandler(AbstractHandler):
         """
         This method receives path of candidates record and performs the RSA method on them
         """
-        if self.old_run_loaded: # Skip if the old run is loaded
-            self._log_message(RSA_PREFIX, f"Old run loaded. Skipping RSA for {step} step.")
-            return
-        
         self._log_message(RSA_PREFIX, "Computing the RSA score...")
+        if self._check_safe_mode(): return
         result_rsa = subprocess.run([
             "python",
             f"{self.base_path}/glimpse/src/compute_rsa.py",

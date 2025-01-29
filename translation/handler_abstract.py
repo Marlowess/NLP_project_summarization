@@ -8,31 +8,31 @@ class AbstractHandler(ABC):
     """
     This is an abstract class for handlers implementation
     """
-    def __init__(self, settings, default_dict, old_run):
+    def __init__(self, settings, default_dict, run_name):
         self.base_path = get_git_root()
         self.output_path = OUTPUT_PATH.format(root_path=self.base_path)
         self.settings = settings
         self._validate_input_settings(default_dict)
-        self._check_old_run_and_set_run_name(old_run)
-        # self.run_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        self._check_old_run_and_set_run_name(run_name)
     
     def _log_message(self, prefix, message):
         print(f"{prefix} {message}")
 
-    def _check_old_run_and_set_run_name(self, old_run):
+    def _check_old_run_and_set_run_name(self, run_name):
         """
         This method checks if the old run is present in the output path
         """
-        self._log_message(INIT_STEP_PREFIX, f"Checking if the old run is present")
-        if os.path.exists(f"{self.output_path}/{old_run}"):
-            self._log_message(INIT_STEP_PREFIX, f"Old run {old_run} found")
-            self.run_name = old_run
+        self._log_message(INIT_STEP_PREFIX, f"Checking if the defined run name already exists")
+        if os.path.exists(f"{self.output_path}/{run_name}"):
+            self._log_message(INIT_STEP_PREFIX, f"Run {run_name} found")
+            self._log_message(INIT_STEP_PREFIX, f"Setting the run name to {run_name}")
+            self._log_message(INIT_STEP_PREFIX, f"Since this run already exists, you could overwrite some files if you run it again")
             self.old_run_loaded = True
         else:
-            self._log_message(INIT_STEP_PREFIX, f"Old run {old_run} not found")
-            self.run_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            self._log_message(INIT_STEP_PREFIX, f"Setting the new run name to {self.run_name}")
+            self._log_message(INIT_STEP_PREFIX, f"Old run {run_name} not found")
+            self._log_message(INIT_STEP_PREFIX, f"Setting the new run name to {run_name}")
             self.old_run_loaded = False
+        self.run_name = run_name
 
     def _validate_input_settings(self, default_dict):
         """

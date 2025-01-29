@@ -10,7 +10,7 @@ def main():
         "print_output_path": True
     }
     
-    handler = PipelineHandler(settings)
+    handler = PipelineHandler(settings, run_name='20250129_175203')
     handler.perform_extractive_step()
     handler.perform_abstractive_step()
     handler.perform_evaluation('seahorse')
