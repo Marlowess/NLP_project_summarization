@@ -8,7 +8,7 @@ def split_dataset(base_folder_path, input_file_path_list, output_folder_path, ra
     The datasets are saved in the preprocessed folder.
     """
     # Read all the inputs files and concatenate in a pandas dataframe
-    x_label, y_label = 'review', 'metareview'
+    x_label, y_label = ['id', 'review'], 'metareview'
     df = pd.concat([pd.read_csv(f"{base_folder_path}/{file_path}") for file_path in input_file_path_list], ignore_index=True)
 
     # Split the dataset into train, test and validation, keeping all the columns in the final datasets
@@ -16,9 +16,14 @@ def split_dataset(base_folder_path, input_file_path_list, output_folder_path, ra
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=random_state)
 
     # Create a complete dataframe for each dataset
-    train_df = pd.DataFrame({'id': 0, x_label: x_train, y_label: y_train})
-    test_df = pd.DataFrame({'id': 0, x_label: x_test, y_label: y_test})
-    val_df = pd.DataFrame({'id': 0, x_label: x_val, y_label: y_val})
+    train_df = x_train.copy()
+    train_df[y_label] = y_train
+
+    val_df = x_val.copy()
+    val_df[y_label] = y_val
+
+    test_df = x_test.copy()
+    test_df[y_label] = y_test
 
     # Save the datasets in the processed folder
     # Check if the output folder exists, otherwise create it
