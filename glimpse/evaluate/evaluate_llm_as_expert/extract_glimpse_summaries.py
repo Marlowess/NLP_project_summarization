@@ -23,8 +23,8 @@ def make_summaries_by_reviews(rsa_res_df, reviews_df):
         reviews_by_id = get_reviews_by_id(reviews_df, paper_id)
         glimpse_speaker_summary = " ".join(row['best_rsa'])
         glimpse_unique_summary = row['consensuality_scores'].idxmax()
-        glimpse_speaker_row = {'summary': glimpse_speaker_summary, 'reviews': reviews_by_id}
-        glimpse_unique_row = {'summary': glimpse_unique_summary, 'reviews': reviews_by_id}
+        glimpse_speaker_row = {'id': paper_id, 'summary': glimpse_speaker_summary, 'reviews': reviews_by_id}
+        glimpse_unique_row = {'id': paper_id,'summary': glimpse_unique_summary, 'reviews': reviews_by_id}
         glimpse_speaker_data.append(glimpse_speaker_row)
         glimpse_unique_data.append(glimpse_unique_row)
     

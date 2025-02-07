@@ -21,11 +21,11 @@ def main():
     # Sample documents
     documents_df = pd.read_csv(args.summaries)
     reviews_by_doc = documents_df.groupby('id')['text'].apply(list).reset_index()
-    res_df = pd.DataFrame(columns=['summary', 'reviews'])
+    res_df = pd.DataFrame(columns=['id', 'summary', 'reviews'])
     for paper in reviews_by_doc['id']:
         reviews = reviews_by_doc[reviews_by_doc['id'] == paper]['text'].to_numpy()[0]
         bert_summary = bert_summary_f(reviews)
-        res_df = pd.concat([res_df, pd.DataFrame({'summary': [bert_summary], 'reviews': [reviews]})], ignore_index=True)
+        res_df = pd.concat([res_df, pd.DataFrame({'id': paper, 'summary': [bert_summary], 'reviews': [reviews]})], ignore_index=True)
     
     folder_path = "data/evaluation"
     file_name = "bert_summaries.csv"

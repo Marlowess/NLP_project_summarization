@@ -126,7 +126,7 @@ def main():
     model_b = args.model_b
     summaries_a = pd.read_csv(args.summaries_a)
     summaries_b = pd.read_csv(args.summaries_b)
-    summaries_by_documents_df = pd.DataFrame() # todo join a and b into: id, reviews, summary_a, summary_b
+    summaries_by_documents_df = summaries_a.merge(summaries_b, on=['id'], suffixes=('_a', '_b'))
     evaluation_df = None
     for index, row in summaries_by_documents_df.iterrows():
         reviews = row['reviews']
