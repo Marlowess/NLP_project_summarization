@@ -129,7 +129,7 @@ def main():
     summaries_by_documents_df = summaries_a.merge(summaries_b, on=['id'], suffixes=('_a', '_b'))
     evaluation_df = None
     for index, row in summaries_by_documents_df.iterrows():
-        reviews = row['reviews']
+        reviews = row['reviews_a']
         generated_summary_a = row['summary_a']
         generated_summary_b = row['summary_b']
         evaluation = evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a, model_b)
