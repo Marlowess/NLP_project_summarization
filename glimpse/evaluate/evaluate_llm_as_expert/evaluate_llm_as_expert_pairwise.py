@@ -7,10 +7,10 @@ import random
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--summaries_A", type=Path, default="", required=True)
-    parser.add_argument("--summaries_B", type=Path, default="", required=True)
-    parser.add_argument("--model_A", type=Path, default="", required=True)
-    parser.add_argument("--model_B", type=Path, default="", required=True)
+    parser.add_argument("--summaries_a", type=Path, default="", required=True)
+    parser.add_argument("--summaries_b", type=Path, default="", required=True)
+    parser.add_argument("--model_a", type=Path, default="", required=True)
+    parser.add_argument("--model_b", type=Path, default="", required=True)
     args = parser.parse_args()
     return args
 
