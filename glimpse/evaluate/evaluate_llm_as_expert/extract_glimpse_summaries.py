@@ -10,6 +10,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 def get_reviews_by_id(reviews_df, paper_id):
     grouped_reviews = reviews_df.groupby('id')['text'].apply(list).reset_index()
     reviews_by_id = grouped_reviews[grouped_reviews['id'] == paper_id]['text'].values[0]
@@ -21,8 +22,14 @@ def make_summaries_by_reviews(rsa_res_df, reviews_df):
     for _, row in rsa_res_df.iterrows():
         paper_id = row['id'][0]
         reviews_by_id = get_reviews_by_id(reviews_df, paper_id)
-        glimpse_speaker_summary = " ".join(row['best_rsa'])
-        glimpse_unique_summary = row['consensuality_scores'].idxmax()
+        consensus_samples = row['consensuality_scores'].sort_values(ascending=True).head(3).index.tolist()
+        dissensus_samples = row['consensuality_scores'].sort_values(ascending=False).head(3).index.tolist()
+        rsa_samples = row['best_rsa'].tolist()[:3]
+        rsa = ".".join(rsa_samples)
+        consensus = ".".join(consensus_samples)
+        dissensus = ".".join(dissensus_samples)
+        glimpse_speaker_summary = consensus + "\n\n" + rsa
+        glimpse_unique_summary = consensus + "\n\n" + dissensus
         glimpse_speaker_row = {'id': paper_id, 'summary': glimpse_speaker_summary, 'reviews': reviews_by_id}
         glimpse_unique_row = {'id': paper_id,'summary': glimpse_unique_summary, 'reviews': reviews_by_id}
         glimpse_speaker_data.append(glimpse_speaker_row)
