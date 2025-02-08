@@ -33,7 +33,7 @@ def main():
 
     os.makedirs(folder_path, exist_ok=True)
 
-    res_df.to_csv(file_path, index=False)
+    res_df.to_json(file_path, index=False)
     
 if __name__ == "__main__":
     main()

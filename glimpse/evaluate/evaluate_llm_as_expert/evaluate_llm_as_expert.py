@@ -145,7 +145,7 @@ Ensure the JSON is valid and does not include any additional text or comments.
 def main():
     openai.api_key = "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"
     args = parse_args()
-    summaries_by_documents_df = pd.read_csv(args.summaries_by_documents)
+    summaries_by_documents_df = pd.read_json(args.summaries_by_documents)
     eval_type = args.eval_type
     evaluation_df = None
     for index, row in summaries_by_documents_df.iterrows():

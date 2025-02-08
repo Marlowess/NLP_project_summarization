@@ -124,8 +124,8 @@ def main():
     args = parse_args()
     model_a = args.model_a
     model_b = args.model_b
-    summaries_a = pd.read_csv(args.summaries_a)
-    summaries_b = pd.read_csv(args.summaries_b)
+    summaries_a = pd.read_json(args.summaries_a)
+    summaries_b = pd.read_json(args.summaries_b)
     summaries_by_documents_df = summaries_a.merge(summaries_b, on=['id'], suffixes=('_a', '_b'))
     evaluation_df = None
     for index, row in summaries_by_documents_df.iterrows():
