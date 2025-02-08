@@ -43,8 +43,8 @@ def main():
     ) = make_summaries_by_reviews(rsa_res_df, reviews_df)
 
     folder_path = "data/evaluation"
-    glimpse_unique_file_name = "glimpse_unique_summaries.csv"
-    glimpse_speaker_file_name = "glimpse_speaker_summaries.csv"
+    glimpse_unique_file_name = "glimpse_unique_summaries.json"
+    glimpse_speaker_file_name = "glimpse_speaker_summaries.json"
     glimpse_unique_file_path = os.path.join(folder_path, glimpse_unique_file_name)
     glimpse_speaker_file_path = os.path.join(folder_path, glimpse_speaker_file_name)
 

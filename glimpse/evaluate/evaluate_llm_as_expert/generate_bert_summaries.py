@@ -28,7 +28,7 @@ def main():
         res_df = pd.concat([res_df, pd.DataFrame({'id': paper, 'summary': [bert_summary], 'reviews': [reviews]})], ignore_index=True)
     
     folder_path = "data/evaluation"
-    file_name = "bert_summaries.csv"
+    file_name = "bert_summaries.json"
     file_path = os.path.join(folder_path, file_name)
 
     os.makedirs(folder_path, exist_ok=True)
