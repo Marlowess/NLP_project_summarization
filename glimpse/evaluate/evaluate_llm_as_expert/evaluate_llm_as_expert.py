@@ -150,7 +150,7 @@ def main():
         generated_summary = row['summary']
         evaluation = evaluate_summary(reviews, generated_summary, eval_type)
         evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
-        print(index + "/" + summaries_by_documents_df.shape[0])
+        print(f"{index}/{summaries_by_documents_df.shape[0]}")
     
     evaluation_df.to_csv("data/evaluation/evaluation_dataset.csv", index=False)
 

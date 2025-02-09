@@ -151,6 +151,7 @@ def main():
     summaries_b = pd.read_json(args.summaries_b)
     summaries_by_documents_df = summaries_a.merge(summaries_b, on=['id'], suffixes=('_a', '_b'))
     evaluation_df = None
+    print(args.n_eval_iter)
     for index, row in summaries_by_documents_df.iterrows():
         reviews = row['reviews_a']
         generated_summary_a = row['summary_a']
@@ -161,7 +162,7 @@ def main():
             majority_df = update_dataset_with_json(evaluation, majority_df)
         majority_row = get_majority_row(majority_df)
         evaluation_df = pd.concat([evaluation_df, majority_row], ignore_index=True)
-        print(index + "/" + summaries_by_documents_df.shape[0])
+        print(f"{index}/{summaries_by_documents_df.shape[0]}")
 
     
     evaluation_df.to_csv("data/evaluation/pairwise_evaluation_dataset.csv", index=False)
