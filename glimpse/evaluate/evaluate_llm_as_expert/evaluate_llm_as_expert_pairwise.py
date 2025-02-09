@@ -46,6 +46,15 @@ def update_dataset_with_json(json_data, df=None):
         return df
 
 
+def get_majority_row(df):
+    def majority_or_tie(series):
+        mode_values = series.mode()
+        return mode_values[0] if len(mode_values) == 1 else 'TIE'
+    
+    majority_values = {col: majority_or_tie(df[col]) for col in df.columns}
+    return pd.DataFrame([majority_values])
+
+
 def randomize_summaries(summary_a, summary_b, model_a, model_b):
     """
     Randomizza l'ordine di due riassunti e restituisce i riassunti
@@ -77,15 +86,23 @@ def evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a,
     randomized = randomize_summaries(generated_summary_a, generated_summary_b, model_a, model_b)
     
     prompt_pairwise_discriminativeness = f"""
-You are an expert in evaluating scientific document summaries. Below, you will receive:
-1. Multiple input documents.
-2. Two generated summarie.
+You are an expert in evaluating scientific document summaries. Your task is to evaluate which one of the generated summaries better captures both common and unique ideas of the documents.
 
-Your task is to evaluate which one of the generated summaries better captures both common and unique ideas of the documents.
+Your evaluation should follow a structured Chain of Thought to ensure a logical and consistent assessment.
 
-[Documents]
+Chain of Thought for Evaluation
+1. Extract Common Ideas: Identify the key ideas that appear in multiple source documents.
+2. Compare Summaries on Common Ideas: Determine which summary more accurately and comprehensively represents these shared concepts.
+3. Extract Unique Ideas: Identify insights or perspectives that appear in only one source document.
+4. Compare Summaries on Unique Ideas: Determine which summary better captures these document-specific details without overemphasizing minor points.
+5. Final Decision: Decide which summary is overall superior by counting how many common and unique ideas it captures.
+
+Here are the source documents and the summaries based on the original source documents:
+
+[Source documents]
 {review_text}
 
+[Generated summaries]
 Summary of model named {randomized['summary_1']['label']}:
 {randomized['summary_1']['text']}
 
@@ -93,15 +110,15 @@ Summary of model named {randomized['summary_2']['label']}:
 {randomized['summary_2']['text']}
 
 Answer picking:
-1. Which summary represent better common ideas?
-2. Which summary represent better unique ideas?
+1. Which summary captures the main common ideas present in the original documents? A strong summary should include all or a good number of major shared concepts while avoiding unnecessary repetition.
+2. Which summary capture distinct, document-specific ideas that are not broadly shared across all sources? A strong summary should highlight valuable, unique perspectives from the original documents.
 3. Which summary do you consider the best overall?
 
 and then provide your evaluation exclusively in the following JSON format where X is the name of the model you picked:
 {{
-    "common_ideas": X,
-    "unique_ideas": X,
-    "best_overall": X
+    "common_ideas": "X",
+    "unique_ideas": "X",
+    "best_overall": "X"
 }}
 
 Ensure the JSON is valid and does not include any additional text or comments.
@@ -119,6 +136,7 @@ Ensure the JSON is valid and does not include any additional text or comments.
 
     return response.choices[0].message.content
 
+
 def main():
     openai.api_key = "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"
     args = parse_args()
@@ -132,8 +150,13 @@ def main():
         reviews = row['reviews_a']
         generated_summary_a = row['summary_a']
         generated_summary_b = row['summary_b']
-        evaluation = evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a, model_b)
-        evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
+        majority_df = None
+        for i in range(5):
+            evaluation = evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a, model_b)
+            majority_df = update_dataset_with_json(evaluation, majority_df)
+        majority_row = get_majority_row(majority_df)
+        evaluation_df = pd.concat([evaluation_df, majority_row], ignore_index=True)
+            
     
     evaluation_df.to_csv("data/evaluation/pairwise_evaluation_dataset.csv", index=False)
 

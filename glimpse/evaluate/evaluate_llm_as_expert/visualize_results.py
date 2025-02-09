@@ -28,7 +28,7 @@ def main():
             evaluation_df.groupby(col).size().plot(kind='barh', color=sns.palettes.mpl_palette('Dark2'))
             plt.gca().spines[['top', 'right',]].set_visible(False)
             filepath = os.path.join(folder_path, f"plot_{col}_{args.model}_vs_{args.model_b}.pdf")
-            plt.savefig(filepath, format="pdf", dpi=300)
+            plt.savefig(filepath, format="pdf", dpi=300, bbox_inches="tight")
             plt.close()
     elif evaluation_type == 'score':
         cols = []
