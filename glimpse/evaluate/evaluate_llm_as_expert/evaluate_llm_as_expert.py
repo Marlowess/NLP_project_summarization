@@ -24,10 +24,7 @@ def update_dataset_with_json(json_data, df=None):
         pd.DataFrame: Un DataFrame pandas aggiornato con i nuovi dati.
     """
     try:
-        data = json.loads(json_data)
-
-        # Extract scores from JSON
-        new_row = {criterion: details["score"] for criterion, details in data.items()}
+        new_row = json.loads(json_data)
 
         new_df = pd.DataFrame([new_row])
         
