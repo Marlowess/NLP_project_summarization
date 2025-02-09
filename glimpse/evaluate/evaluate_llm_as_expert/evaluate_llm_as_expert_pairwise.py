@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument("--summaries_b", type=Path, default="", required=True)
     parser.add_argument("--model_a", type=Path, default="", required=True)
     parser.add_argument("--model_b", type=Path, default="", required=True)
+    parser.add_argument("--n_eval_iter", type=Path, default=5)
     args = parser.parse_args()
     return args
 
@@ -86,7 +87,11 @@ def evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a,
     randomized = randomize_summaries(generated_summary_a, generated_summary_b, model_a, model_b)
     
     prompt_pairwise_discriminativeness = f"""
-You are an expert in evaluating scientific document summaries. Your task is to evaluate which one of the generated summaries better captures both common and unique ideas of the documents.
+You are an expert in evaluating scientific document summaries. Below, you will receive:
+- Source documents.
+- Two generated summaries based on the original source documents.
+
+Your task is to evaluate which one of the generated summaries better captures both common and unique ideas of the documents.
 
 Your evaluation should follow a structured Chain of Thought to ensure a logical and consistent assessment.
 
@@ -151,12 +156,13 @@ def main():
         generated_summary_a = row['summary_a']
         generated_summary_b = row['summary_b']
         majority_df = None
-        for i in range(5):
+        for i in range(args.n_eval_iter):
             evaluation = evaluate_summary(reviews, generated_summary_a, generated_summary_b, model_a, model_b)
             majority_df = update_dataset_with_json(evaluation, majority_df)
         majority_row = get_majority_row(majority_df)
         evaluation_df = pd.concat([evaluation_df, majority_row], ignore_index=True)
-            
+        print(index + "/" + summaries_by_documents_df.shape[0])
+
     
     evaluation_df.to_csv("data/evaluation/pairwise_evaluation_dataset.csv", index=False)
 

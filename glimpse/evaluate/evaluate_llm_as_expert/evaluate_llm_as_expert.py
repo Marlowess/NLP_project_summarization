@@ -53,41 +53,35 @@ def evaluate_summary(reviews, generated_summary, eval_type):
 
     prompt_seahorse_like = f"""
 You are an expert in evaluating scientific document summaries. Below, you will receive:
-1. Multiple input documents.
-2. A generated summary.
+- Source documents.
+- A generated summary based on the original source documents.
 
 Your task is to evaluate the summary based on the following criteria:
-- Coverage: Does the summary include all the main points from the documents?
-- Coherence: Is the summary well-organized and easy to understand?
-- Conciseness: Is the summary brief but comprehensive?
-- Faithfulness: Does the summary accurately represent the source documents without adding false information?
-- Readability: Is the summary easy to read and grammatically correct?
+- comprehensible: The summary can be read and understood by the rater.
+- repetition: The summary is free of unnecessarily repeated information.
+- grammar: The summary is grammatically correct.
+- main ideas: The summary captures the main idea(s) of the source documents.
+- attribution: All the information in the summary is fully attributable to the source documents,
+- conciseness: The summary concisely represents the information in the source documents.
 
-Please assign a score from 1 to 10 for each criterion.
+Please assign a score for each criterion. The score should be in the range between 0 and 1 with a maximum of two decimal.
 
-[Documents]
+Here are the source documents and the summary based on the original source documents:
+
+[Source documents]
 {review_text}
 
 [Generated Summary]
 {generated_summary}
 
-Provide your evaluation exclusively in the following JSON format:
+Provide your evaluation exclusively in the following JSON format where X is the numeric score:
 {{
-    "coverage": {{
-        "score": X,
-    }},
-    "coherence": {{
-        "score": X,
-    }},
-    "conciseness": {{
-        "score": X,
-    }},
-    "faithfulness": {{
-        "score": X,
-    }},
-    "readability": {{
-        "score": X,
-    }}
+    "comprehensible": X,
+    "repetition": X,
+    "grammar": X,
+    "main_ideas": X,
+    "attribution": X,
+    "conciseness": X
 }}
 
 Ensure the JSON is valid and does not include any additional text or comments.
@@ -100,9 +94,18 @@ You are an expert in evaluating scientific document summaries. Below, you will r
 
 Your task is to evaluate whether the summary captures both common and unique ideas of the documents.
 
-Assign a score from 1 to 10 to evaluate if the summary captures common ideas of the documents.
-Assign a score from 1 to 10 to evaluate if the summary captures unique ideas of the documents.
-Assign a score from 1 to 10 for the confidence of your evaluation.
+Your evaluation should follow a structured Chain of Thought to ensure a logical and consistent assessment.
+
+Chain of Thought for Evaluation
+1. Extract Common Ideas: Identify the key ideas that appear in multiple source documents.
+2. Compare Summaries on Common Ideas: Determine which summary more accurately and comprehensively represents these shared concepts.
+3. Extract Unique Ideas: Identify insights or perspectives that appear in only one source document.
+4. Compare Summaries on Unique Ideas: Determine which summary better captures these document-specific details without overemphasizing minor points.
+5. Final Decision: Decide which summary is overall superior by counting how many common and unique ideas it captures.
+
+
+Assign a score in the range between 0 and 1 with a maximum of two decimal to evaluate if the summary captures common ideas of the documents.
+Assign a score in the range between 0 and 1 with a maximum of two decimal to evaluate if the summary captures unique ideas of the documents.
 
 [Documents]
 {review_text}
@@ -110,16 +113,10 @@ Assign a score from 1 to 10 for the confidence of your evaluation.
 [Generated Summary]
 {generated_summary}
 
-Provide your evaluation exclusively in the following JSON format:
+Provide your evaluation exclusively in the following JSON format where X is the numeric score:
 {{
-    "common": {{
-        "score": X,
-        "confidence": X,
-    }},
-    "unique": {{
-        "score": X,
-        "confidence": X,
-    }}
+    "common": X,
+    "unique": X
 }}
 
 Ensure the JSON is valid and does not include any additional text or comments.
@@ -153,6 +150,7 @@ def main():
         generated_summary = row['summary']
         evaluation = evaluate_summary(reviews, generated_summary, eval_type)
         evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
+        print(index + "/" + summaries_by_documents_df.shape[0])
     
     evaluation_df.to_csv("data/evaluation/evaluation_dataset.csv", index=False)
 
