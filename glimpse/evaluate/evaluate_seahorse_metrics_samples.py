@@ -51,7 +51,7 @@ def parse_summaries(path: Path):
     df = pd.read_csv(path).dropna()
 
     # check if the csv file has the correct columns
-    if not all([col in df.columns for col in ["text", "summary"]]):
+    if not all([col in df.columns for col in ["text", "summary"]]) and not all([col in df.columns for col in ["reviews", "summary"]]):
         raise ValueError("The csv file must have the columns 'text' and 'summary'.")
 
     return df
@@ -59,11 +59,15 @@ def parse_summaries(path: Path):
 
 def evaluate_classification_task(model, tokenizer, question, df, batch_size):
 
-    texts = df.text.tolist()
+    if "text" in df.columns:
+        texts = df.text.tolist()
+    else:
+        texts = df.reviews.tolist()
     summaries = df.summary.tolist()
 
     template = "premise: {premise} hypothesis: {hypothesis}"
     ds = [template.format(premise=text[:20*1024], hypothesis=summary) for text, summary in zip(texts, summaries)]
+    #ds = [template.format(premise=" ".join(text)[:20*1024], hypothesis=summary) for text, summary in zip(texts, summaries)]
 
 
     eval_loader = torch.utils.data.DataLoader(ds, batch_size=batch_size)

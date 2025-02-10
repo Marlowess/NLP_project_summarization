@@ -162,10 +162,10 @@ def main():
             majority_df = update_dataset_with_json(evaluation, majority_df)
         majority_row = get_majority_row(majority_df)
         evaluation_df = pd.concat([evaluation_df, majority_row], ignore_index=True)
-        print(f"{index}/{summaries_by_documents_df.shape[0]}")
+        print(f"{index + 1}/{summaries_by_documents_df.shape[0]}")
 
     
-    evaluation_df.to_csv("data/evaluation/pairwise_evaluation_dataset.csv", index=False)
+    evaluation_df.to_csv(f"data/evaluation/{args.model_a}_vs_{args.model_b}_pairwise_evaluation_dataset.csv", index=False)
 
 if __name__ == "__main__":
     main()

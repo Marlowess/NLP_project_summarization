@@ -58,7 +58,9 @@ def main():
     os.makedirs(folder_path, exist_ok=True)
 
     glimpse_unique_summaries_by_reviews_df.to_json(glimpse_unique_file_path, index=False)
+    glimpse_unique_summaries_by_reviews_df.to_csv("data/evaluation/glimpse_unique_summaries.csv", index=False)
     glimpse_speaker_summaries_by_reviews_df.to_json(glimpse_speaker_file_path, index=False)
+    glimpse_speaker_summaries_by_reviews_df.to_csv("data/evaluation/glimpse_speaker_summaries.csv", index=False)
 
 if __name__ == "__main__":
     main()

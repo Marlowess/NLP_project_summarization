@@ -7,7 +7,8 @@ import json
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--summaries_by_documents", type=Path, default="", required=True)
-    parser.add_argument("--eval_type", type=Path, default="", required=True)
+    parser.add_argument("--eval_type", type=str, default="discriminativeness", required=True)
+    parser.add_argument("--model", type=str, required=True)
     args = parser.parse_args()
     return args
 
@@ -147,9 +148,9 @@ def main():
         generated_summary = row['summary']
         evaluation = evaluate_summary(reviews, generated_summary, eval_type)
         evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
-        print(f"{index}/{summaries_by_documents_df.shape[0]}")
+        print(f"{index + 1}/{summaries_by_documents_df.shape[0]}")
     
-    evaluation_df.to_csv("data/evaluation/evaluation_dataset.csv", index=False)
+    evaluation_df.to_csv(f"data/evaluation/{args.model}_{args.eval_type}_evaluation_dataset.csv", index=False)
 
 if __name__ == "__main__":
     main()
