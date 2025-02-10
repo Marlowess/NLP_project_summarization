@@ -95,17 +95,15 @@ Your task is to evaluate whether the summary captures both common and unique ide
 Your evaluation should follow a structured Chain of Thought to ensure a logical and consistent assessment.
 
 Chain of Thought for Evaluation
-1. Extract Common Ideas: Identify the key ideas that appear in multiple source documents.
-2. Compare Summaries on Common Ideas: Determine which summary more accurately and comprehensively represents these shared concepts.
-3. Extract Unique Ideas: Identify insights or perspectives that appear in only one source document.
-4. Compare Summaries on Unique Ideas: Determine which summary better captures these document-specific details without overemphasizing minor points.
-5. Final Decision: Decide which summary is overall superior by counting how many common and unique ideas it captures.
+1. Extract common ideas: read the source documents and identify the key ideas that appear in them.
+2. Assign a score to the summary on common ideas: read the summary and give it a score that represents how much accurately and comprehensively it represents these shared concepts.
+3. Extract Unique Ideas: read the source documents and identify insights or perspectives that appear in only one source document.
+4. Assign a score to the summary on unique ideas: read the summary and give it a score that represents how well it captures these document-specific details.
 
 
-Assign a score in the range between 0 and 1 with a maximum of two decimal to evaluate if the summary captures common ideas of the documents.
-Assign a score in the range between 0 and 1 with a maximum of two decimal to evaluate if the summary captures unique ideas of the documents.
+The scores should be in the range between 0 and 1 with a maximum of two decimal.
 
-[Documents]
+[Source documents]
 {review_text}
 
 [Generated Summary]
