@@ -11,6 +11,7 @@ from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPRO
 from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR, WARNING_PREFIX
 from handler_abstract import AbstractHandler
 from contextlib import redirect_stdout
+import time
 
 import nltk
 nltk.download('punkt_tab')
@@ -41,6 +42,9 @@ class PipelineHandler(AbstractHandler):
             "extractive": None if not self.old_run_loaded else self._find_file_with_wildcard(f"{self.rsa_output_dir}/extractive", "*.pk")
         }
 
+        # Dictionary of statistics
+        self.statistics = {}
+
     def _create_folder_if_not_exists(self, path):
         """
         This utility method checks if a folder already exists.
@@ -69,6 +73,7 @@ class PipelineHandler(AbstractHandler):
         """
         This method processes input data and prepare them to perform the pipeline
         """
+        start_time = time.time()
         self._log_message(PREPROCESSING_PREFIX, "Preparing input files")
         if self._check_safe_mode(): return
         self._create_folder_if_not_exists(self.processed_data_path)
@@ -85,11 +90,13 @@ class PipelineHandler(AbstractHandler):
                 self._log_message(PREPROCESSING_PREFIX, f"Saved file at {output_file_path}")
             except:
                 self._log_message(PREPROCESSING_PREFIX, f"Input file {file} not found or already managed. Skipping it.")
+        self.statistics['preprocessing_time'] = time.time() - start_time
 
     def perform_extractive_step(self):
         """
         This methods runs the generation of candidates using the extractive mode
         """
+        start_time = time.time()
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the extractive step.")
         if self._check_safe_mode(): return
         result_extractive = subprocess.run([
@@ -111,11 +118,13 @@ class PipelineHandler(AbstractHandler):
             self._perform_rsa(self.extractive_candidates_path, 'extractive')
         else:
             self._log_message(CANDIDATES_CREATION_PREFIX, f"Occurred error: {result_extractive.stderr}")
+        self.statistics['extractive_time'] = time.time() - start_time
 
     def perform_abstractive_step(self):
         """
         This methods runs the generation of candidates using the abstractive mode
         """
+        start_time = time.time()
         self._log_message(CANDIDATES_CREATION_PREFIX, "Running the abstractive step.")
         if self._check_safe_mode(): return
         result_abstractive = subprocess.run([
@@ -140,11 +149,13 @@ class PipelineHandler(AbstractHandler):
             self._perform_rsa(self.abstractive_candidates_path, 'abstractive')
         else:
             self._log_message(CANDIDATES_CREATION_PREFIX, f"Occurred error: {result_abstractive.stderr}")
+        self.statistics['abstractive_time'] = time.time() - start_time
 
     def _perform_rsa(self, candidates_path, step):
         """
         This method receives path of candidates record and performs the RSA method on them
         """
+        start_time = time.time()
         self._log_message(RSA_PREFIX, "Computing the RSA score...")
         if self._check_safe_mode(): return
         result_rsa = subprocess.run([
@@ -165,6 +176,7 @@ class PipelineHandler(AbstractHandler):
             self.rsa_paths[step] = rsa_path
         else:
             self._log_message(RSA_PREFIX, f"Occurred error: {result_rsa.stderr}")
+        self.statistics[f'{step}_rsa_time'] = time.time() - start_time
 
     def perform_evaluation(self, evaluation_name):
         """
@@ -172,6 +184,7 @@ class PipelineHandler(AbstractHandler):
         :param: evaluation_name: seahorse, batbert, common
         """
 
+        start_time = time.time()
         # Check if the output folder for logs already exists
         # output_folder_log_files = self.base_path + '/' + self.settings.get('output_log_files_path')
         self._create_folder_if_not_exists(self.output_logs_dir)
@@ -191,7 +204,8 @@ class PipelineHandler(AbstractHandler):
         if evaluation_name == 'seahorse':
             self._perform_seahorse_evaluation(abstractive_analysis, extractive_analysis, self.output_logs_dir)
         else:
-            raise Exception(f"Evaluation named {evaluation_name} not implemented yet")
+            self._log_message(EVALUATION_PREFIX, f"Evaluation named {evaluation_name} not implemented yet") 
+        self.statistics[f'{evaluation_name}_evaluation_time'] = time.time() - start_time
 
         # Combine the analyses
         # combined_analysis = pd.concat([abstractive_analysis, extractive_analysis])
@@ -232,3 +246,9 @@ class PipelineHandler(AbstractHandler):
 
     def perform_common_metrics_evaluation(self):
         pass
+
+    def get_statistics(self):
+        """
+        This method returns the statistics of the pipeline
+        """
+        return self.statistics
