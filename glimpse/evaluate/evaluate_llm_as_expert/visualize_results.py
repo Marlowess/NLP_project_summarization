@@ -30,9 +30,13 @@ def main():
             filepath = os.path.join(folder_path, f"pairwise_plot_{col}_{args.model}_vs_{args.model_b}.pdf")
             plt.savefig(filepath, format="pdf", dpi=300, bbox_inches="tight")
             plt.close()
-    elif evaluation_type == 'score':
-        cols = []
-        # todo
+    else:
+        for col in evaluation_df.columns:
+            evaluation_df[col].plot(kind='hist', bins=20, title=col)
+            plt.gca().spines[['top', 'right',]].set_visible(False)
+            filepath = os.path.join(folder_path, f"{evaluation_type}_plot_{col}_{args.model}.pdf")
+            plt.savefig(filepath, format="pdf", dpi=300, bbox_inches="tight")
+            plt.close()
 
 
 
