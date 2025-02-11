@@ -53,6 +53,8 @@ def parse_summaries(path: Path):
     if 'reviews' in df.columns:
         df = df.rename(columns={'reviews': 'text'})
 
+    print('parse', df.head(3))
+
     # check if the csv file has the correct columns
     if not all([col in df.columns for col in ["text", "summary"]]):
         raise ValueError("The csv file must have the columns 'text' and 'summary'.")
@@ -62,8 +64,13 @@ def parse_summaries(path: Path):
 
 def evaluate_classification_task(model, tokenizer, question, df, batch_size):
 
+    print('evaluate', df.head(3))
+
     texts = df.text.tolist()
     summaries = df.summary.tolist()
+
+    print(texts[0], type(texts[0]))
+    print(summaries[0], type(summaries[0]))
 
     template = "premise: {premise} hypothesis: {hypothesis}"
     ds = [template.format(premise=text[:20*1024], hypothesis=summary) for text, summary in zip(texts, summaries)]
@@ -121,14 +128,20 @@ def main():
 
     df = parse_summaries(args.summaries)
 
+    print('main 1', df.head(3))
+
     metrics = evaluate_classification_task(model, tokenizer, question, df, args.batch_size)
 
     # make a dataframe with the metric
     df_metrics = pd.DataFrame(metrics)
 
+    print('main 2', df_metrics.head(3))
+
     # merge the metrics with the summaries
     df = parse_summaries(args.summaries)
+    print('main 3', df.head(3))
     df = pd.concat([df, df_metrics], axis=1)
+    print('main 4', df.head(3))
 
     path = Path(args.summaries)
 
