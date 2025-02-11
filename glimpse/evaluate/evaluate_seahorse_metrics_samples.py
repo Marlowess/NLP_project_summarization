@@ -145,7 +145,7 @@ def main():
 
     path = Path(args.summaries)
 
-    if path.exists():
+    """ if path.exists():
         df_old = pd.read_csv(path, index_col=0)
         print('df_old 1', df_old.columns, df_old.head(3))
 
@@ -162,7 +162,7 @@ def main():
         
         print('df_old final', df_old.columns, df_old.head(3))
 
-        df = df_old
+        df = df_old """
 
     # save the dataframe
     df.to_csv(args.summaries)
