@@ -147,15 +147,20 @@ def main():
 
     if path.exists():
         df_old = pd.read_csv(path, index_col=0)
+        print('df_old 1', df_old.columns, df_old.head(3))
 
         # create the colums if they do not exist
         for col in df.columns:
             if col not in df_old.columns:
                 df_old[col] = float("nan")
+        
+        print('df_old 2', df_old.columns, df_old.head(3))
 
         # add entry to the dataframe
         for col in df.columns:
             df_old[col] = df[col]
+        
+        print('df_old final', df_old.columns, df_old.head(3))
 
         df = df_old
 
