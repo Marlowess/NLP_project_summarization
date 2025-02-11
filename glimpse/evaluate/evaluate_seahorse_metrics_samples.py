@@ -50,8 +50,11 @@ def parse_summaries(path: Path):
 
     df = pd.read_csv(path).dropna()
 
+    if 'reviews' in df.columns:
+        df = df.rename(columns={'reviews': 'text'})
+
     # check if the csv file has the correct columns
-    if not all([col in df.columns for col in ["text", "summary"]]) and not all([col in df.columns for col in ["reviews", "summary"]]):
+    if not all([col in df.columns for col in ["text", "summary"]]):
         raise ValueError("The csv file must have the columns 'text' and 'summary'.")
 
     return df
@@ -59,10 +62,7 @@ def parse_summaries(path: Path):
 
 def evaluate_classification_task(model, tokenizer, question, df, batch_size):
 
-    if "text" in df.columns:
-        texts = df.text.tolist()
-    else:
-        texts = df.reviews.tolist()
+    texts = df.text.tolist()
     summaries = df.summary.tolist()
 
     template = "premise: {premise} hypothesis: {hypothesis}"
