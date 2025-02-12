@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument("--dataset", default="reviews")
     # method
     parser.add_argument("--method", type=str, choices=['LSA', 'text-rank', 'lex-rank', 'edmundson', 'luhn', 'kl-sum', 'random', 'reduction'], default="LSA")
-    parser.add_argument("--output", type=Path, default="")
+    parser.add_argument("--output", type=Path, default="data/evaluation")
 
     args = parser.parse_args()
     return args

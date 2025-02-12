@@ -41,6 +41,8 @@ def make_summaries_by_reviews(rsa_res_df, reviews_df):
 
 def main():
     args = parse_args()
+    isExtractive = "extractive" in str(args.rsa_res)
+    prefix = "extractive" if isExtractive else "abstractive"
     rsa_res_df = pd.read_pickle(args.rsa_res)
     rsa_res_df = pd.DataFrame(rsa_res_df['results'])
     reviews_df = pd.read_csv(args.reviews)
@@ -50,17 +52,17 @@ def main():
     ) = make_summaries_by_reviews(rsa_res_df, reviews_df)
 
     folder_path = "data/evaluation"
-    glimpse_unique_file_name = "glimpse_unique_summaries.json"
-    glimpse_speaker_file_name = "glimpse_speaker_summaries.json"
+    glimpse_unique_file_name = f"{prefix}_glimpse_unique_summaries.json"
+    glimpse_speaker_file_name = f"{prefix}_glimpse_speaker_summaries.json"
     glimpse_unique_file_path = os.path.join(folder_path, glimpse_unique_file_name)
     glimpse_speaker_file_path = os.path.join(folder_path, glimpse_speaker_file_name)
 
     os.makedirs(folder_path, exist_ok=True)
 
     glimpse_unique_summaries_by_reviews_df.to_json(glimpse_unique_file_path, index=False)
-    glimpse_unique_summaries_by_reviews_df.to_csv("data/evaluation/glimpse_unique_summaries.csv", index=False)
+    glimpse_unique_summaries_by_reviews_df.to_csv(f"data/evaluation/{prefix}_glimpse_unique_summaries.csv", index=False)
     glimpse_speaker_summaries_by_reviews_df.to_json(glimpse_speaker_file_path, index=False)
-    glimpse_speaker_summaries_by_reviews_df.to_csv("data/evaluation/glimpse_speaker_summaries.csv", index=False)
+    glimpse_speaker_summaries_by_reviews_df.to_csv(f"data/evaluation/{prefix}_glimpse_speaker_summaries.csv", index=False)
 
 if __name__ == "__main__":
     main()

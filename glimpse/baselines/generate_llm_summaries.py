@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument("--dataset", default="")
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--output", type=Path, default="")
+    parser.add_argument("--output", type=Path, default="data/evaluation")
 
     args = parser.parse_args()
     return args
