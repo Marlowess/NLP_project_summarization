@@ -19,7 +19,7 @@ def main():
         print("Error: value must be between 0 and 1")
         return
     
-    output_dir = os.path.dirname('data/test/samples.csv')
+    output_dir = os.path.dirname('data/sample/samples.csv')
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
         print(f"Directory '{output_dir}' created.")
@@ -29,7 +29,7 @@ def main():
     sampled_ids = pd.Series(unique_ids).sample(frac=args.sample_fraction, random_state=42)
     sampled_data = data[data['id'].isin(sampled_ids)]
 
-    sampled_data.to_csv('data/test/samples.csv', index=False)
+    sampled_data.to_csv('data/sample/samples.csv', index=False)
     print(f"Sampling completed. File saved as samples.csv.")
 
 if __name__ == "__main__":

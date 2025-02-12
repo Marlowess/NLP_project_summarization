@@ -62,7 +62,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def prepare_dataset(dataset_name, dataset_path="data/test/"):
+def prepare_dataset(dataset_name, dataset_path="data/sample/"):
     dataset_path = Path(dataset_path)
     if dataset_name == "reviews":
         dataset = pd.read_csv(dataset_path / "samples.csv")
@@ -96,7 +96,7 @@ def main():
     args = parse_args()
     for N in [1]:
         dataset = prepare_dataset(args.dataset)
-        # dataset = group_text_by_id(dataset)
+        dataset = group_text_by_id(dataset)
 
         summaries = []
         for text in dataset.text:

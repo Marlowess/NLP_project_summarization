@@ -18,7 +18,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def prepare_dataset(dataset_name, dataset_path="data/test/"):
+def prepare_dataset(dataset_name, dataset_path="data/sample/"):
     dataset_path = Path(dataset_path)
     if dataset_name == "reviews":
         dataset = pd.read_csv(dataset_path / "samples.csv")
