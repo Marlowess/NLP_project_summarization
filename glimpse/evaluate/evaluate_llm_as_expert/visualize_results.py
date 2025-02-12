@@ -40,8 +40,15 @@ def main():
             plt.close()
     elif evaluation_type == 'seahorse_score':
         seahorse_evaluation_df = pd.read_csv(args.seahorse_evaluation_dataset)
-        metrics_SH = []
-        metrics_SH_like = []
+        metrics_SH = ['comprehensible', 'repetition', 'grammar', 'attribution', 'main_ideas', 'conciseness']
+        metrics_SH_like = [
+            'SHMetric/Comprehensible/proba_1', 
+            'SHMetric/Repetition/proba_1', 
+            'SHMetric/Grammar/proba_1', 
+            'SHMetric/Attribution/proba_1', 
+            'SHMetric/Main ideas/proba_1', 
+            'SHMetric/Conciseness/proba_1'
+            ]
         plt.figure(figsize=(12, 8))
         for i, (metric_SH, metric_SH_like) in enumerate(zip(metrics_SH, metrics_SH_like), 1):
             plt.subplot(2, 3, i)
