@@ -9,6 +9,8 @@ def parse_args():
     parser.add_argument("--summaries_by_documents", type=Path, default="", required=True)
     parser.add_argument("--eval_type", type=str, default="discriminativeness", required=True)
     parser.add_argument("--model", type=str, required=True)
+    parser.add_argument("--base_dir", type=Path, default="", required=True)
+    parser.add_argument("--output_dir", type=Path, default="", required=True)
     args = parser.parse_args()
     return args
 
@@ -148,7 +150,7 @@ def main():
         evaluation_df = update_dataset_with_json(evaluation, evaluation_df)
         print(f"{index + 1}/{summaries_by_documents_df.shape[0]}")
     
-    evaluation_df.to_csv(f"data/evaluation/{args.model}_{args.eval_type}_evaluation_dataset.csv", index=False)
+    evaluation_df.to_csv(f"{args.output_dir}/data/evaluation/{args.model}_{args.eval_type}_evaluation_dataset.csv", index=False)
 
 if __name__ == "__main__":
     main()

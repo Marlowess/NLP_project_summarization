@@ -24,3 +24,5 @@ INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE = {
     "seahorse_evaluation_key_questions": ([1, 2], list),
     "input_files_to_process": (["all_reviews_2017_italian.csv"], list)
 }
+
+OPENAI_KEY='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'

@@ -13,12 +13,14 @@ def parse_args():
     parser.add_argument("--type", type=str, default="", required=True)
     parser.add_argument("--model", type=str, default="", required=True)
     parser.add_argument("--model_b", type=str, default="")
+    parser.add_argument("--base_path", type=str, default="", required=True)
+    parser.add_argument("--output_path", type=str, default="", required=True)
     args = parser.parse_args()
     return args
 
 def main():
     args = parse_args()
-    folder_path = "plots"
+    folder_path = f"{args.output_path}/plots"
     os.makedirs(folder_path, exist_ok=True)
 
     evaluation_type = args.type

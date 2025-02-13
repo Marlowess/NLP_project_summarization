@@ -7,6 +7,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rsa_res", type=Path, default="", required=True)
     parser.add_argument("--reviews", type=Path, default="", required=True)
+    parser.add_argument("--base_path", type=str, default="", required=True)
+    parser.add_argument("--output_path", type=str, default="", required=True)
     args = parser.parse_args()
     return args
 
@@ -51,7 +53,7 @@ def main():
         glimpse_speaker_summaries_by_reviews_df
     ) = make_summaries_by_reviews(rsa_res_df, reviews_df)
 
-    folder_path = "data/evaluation"
+    folder_path = f"{args.output_dir}/data/evaluation"
     glimpse_unique_file_name = f"{prefix}_glimpse_unique_summaries.json"
     glimpse_speaker_file_name = f"{prefix}_glimpse_speaker_summaries.json"
     glimpse_unique_file_path = os.path.join(folder_path, glimpse_unique_file_name)
@@ -60,9 +62,9 @@ def main():
     os.makedirs(folder_path, exist_ok=True)
 
     glimpse_unique_summaries_by_reviews_df.to_json(glimpse_unique_file_path, index=False)
-    glimpse_unique_summaries_by_reviews_df.to_csv(f"data/evaluation/{prefix}_glimpse_unique_summaries.csv", index=False)
+    glimpse_unique_summaries_by_reviews_df.to_csv(f"{args.output_dir}/data/evaluation/{prefix}_glimpse_unique_summaries.csv", index=False)
     glimpse_speaker_summaries_by_reviews_df.to_json(glimpse_speaker_file_path, index=False)
-    glimpse_speaker_summaries_by_reviews_df.to_csv(f"data/evaluation/{prefix}_glimpse_speaker_summaries.csv", index=False)
+    glimpse_speaker_summaries_by_reviews_df.to_csv(f"{args.output_dir}/data/evaluation/{prefix}_glimpse_speaker_summaries.csv", index=False)
 
 if __name__ == "__main__":
     main()
