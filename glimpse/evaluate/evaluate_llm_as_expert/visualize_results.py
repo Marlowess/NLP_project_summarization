@@ -40,8 +40,8 @@ def main():
             plt.close()
     elif evaluation_type == 'seahorse_score':
         seahorse_evaluation_df = pd.read_csv(args.seahorse_evaluation_dataset)
-        metrics_SH = ['comprehensible', 'repetition', 'grammar', 'attribution', 'main_ideas', 'conciseness']
-        metrics_SH_like = [
+        metrics_SH_like = ['comprehensible', 'repetition', 'grammar', 'attribution', 'main_ideas', 'conciseness']
+        metrics_SH = [
             'SHMetric/Comprehensible/proba_1', 
             'SHMetric/Repetition/proba_1', 
             'SHMetric/Grammar/proba_1', 
