@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument(
         "--question",
         type=str,
-        default="2",
+        default="repetition",
     )
     parser.add_argument("--summaries", type=Path, default="")
     parser.add_argument("--select", type=str, default="*")
@@ -50,9 +50,6 @@ def parse_summaries(path: Path):
 
     df = pd.read_csv(path).dropna()
 
-    if 'reviews' in df.columns:
-        df = df.rename(columns={'reviews': 'text'})
-
     # check if the csv file has the correct columns
     if not all([col in df.columns for col in ["text", "summary"]]):
         raise ValueError("The csv file must have the columns 'text' and 'summary'.")
@@ -67,7 +64,6 @@ def evaluate_classification_task(model, tokenizer, question, df, batch_size):
 
     template = "premise: {premise} hypothesis: {hypothesis}"
     ds = [template.format(premise=text[:20*1024], hypothesis=summary) for text, summary in zip(texts, summaries)]
-    #ds = [template.format(premise=" ".join(text)[:20*1024], hypothesis=summary) for text, summary in zip(texts, summaries)]
 
 
     eval_loader = torch.utils.data.DataLoader(ds, batch_size=batch_size)
@@ -132,24 +128,19 @@ def main():
 
     path = Path(args.summaries)
 
-    """ if path.exists():
+    if path.exists():
         df_old = pd.read_csv(path, index_col=0)
-        print('df_old 1', df_old.columns, df_old.head(3))
 
         # create the colums if they do not exist
         for col in df.columns:
             if col not in df_old.columns:
                 df_old[col] = float("nan")
-        
-        print('df_old 2', df_old.columns, df_old.head(3))
 
         # add entry to the dataframe
         for col in df.columns:
             df_old[col] = df[col]
-        
-        print('df_old final', df_old.columns, df_old.head(3))
 
-        df = df_old """
+        df = df_old
 
     # save the dataframe
     df.to_csv(args.summaries)

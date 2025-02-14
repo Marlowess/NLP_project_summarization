@@ -1,4 +1,5 @@
 from sumy.parsers.plaintext import PlaintextParser
+from sumy.parsers.html import HtmlParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
@@ -29,6 +30,8 @@ def summarize(method, language, sentence_count, input_type, input_):
     if method == 'reduction':
         from sumy.summarizers.reduction import ReductionSummarizer as Summarizer
 
+    if input_type == "URL":
+        parser = HtmlParser.from_url(input_, Tokenizer(language))
     if input_type == "text":
         parser = PlaintextParser.from_string(input_, Tokenizer(language))
 
@@ -54,18 +57,26 @@ def summarize(method, language, sentence_count, input_type, input_):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", default="reviews")
+    parser.add_argument("--dataset", default="")
     # method
     parser.add_argument("--method", type=str, choices=['LSA', 'text-rank', 'lex-rank', 'edmundson', 'luhn', 'kl-sum', 'random', 'reduction'], default="LSA")
-    parser.add_argument("--output", type=Path, default="data/evaluation")
+    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--output", type=Path, default="")
 
     args = parser.parse_args()
     return args
 
-def prepare_dataset(dataset_name, dataset_path="data/sample/"):
+def prepare_dataset(dataset_name, dataset_path="rsasumm/data/processed/"):
     dataset_path = Path(dataset_path)
-    if dataset_name == "reviews":
-        dataset = pd.read_csv(dataset_path / "samples.csv")
+    if dataset_name == "amazon":
+        dataset = pd.read_csv(dataset_path / "amazon_test.csv")
+    elif dataset_name == "space":
+        dataset = pd.read_csv(dataset_path / "space.csv")
+    elif dataset_name == "yelp":
+        dataset = pd.read_csv(dataset_path / "yelp_test.csv")
+    elif dataset_name == "reviews":
+        dataset = pd.read_csv(dataset_path / "test_metareviews.csv")
     else:
         raise ValueError(f"Unknown dataset {dataset_name}")
 
@@ -96,7 +107,7 @@ def main():
     args = parse_args()
     for N in [1]:
         dataset = prepare_dataset(args.dataset)
-        dataset = group_text_by_id(dataset)
+        # dataset = group_text_by_id(dataset)
 
         summaries = []
         for text in dataset.text:

@@ -70,7 +70,6 @@ def evaluate_summarizer(dataset: Dataset) -> Dataset:
 
 
 def main():
-    nltk.download('punkt_tab')
     args = parse_args()
     # load the dataset
     print("Loading dataset...")
