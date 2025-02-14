@@ -7,8 +7,6 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--summaries", type=Path, default="", required=True)
     parser.add_argument("--reviews", type=Path, default="", required=True)
-    parser.add_argument("--base_path", type=str, default="", required=True)
-    parser.add_argument("--output_path", type=str, default="", required=True)
     args = parser.parse_args()
     return args
 
@@ -37,14 +35,14 @@ def main():
     reviews_df = pd.read_csv(args.reviews)
     summaries_by_reviews_df = make_summaries_by_reviews(summaries_df, reviews_df)
 
-    folder_path = f"{args.output_path}/data/evaluation"
+    folder_path = "data/evaluation"
     file_name = f"{model}.json"
     file_path = os.path.join(folder_path, file_name)
 
     os.makedirs(folder_path, exist_ok=True)
 
     summaries_by_reviews_df.to_json(file_path, index=False)
-    summaries_by_reviews_df.to_csv(f"{args.output_path}/data/evaluation/{model}.csv", index=False)
+    summaries_by_reviews_df.to_csv(f"data/evaluation/{model}.csv", index=False)
 
 if __name__ == "__main__":
     main()

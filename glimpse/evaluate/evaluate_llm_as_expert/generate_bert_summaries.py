@@ -7,8 +7,6 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--summaries", type=Path, default="")
-    parser.add_argument("--base_path", type=str, default="", required=True)
-    parser.add_argument("--output_path", type=str, default="", required=True)
     args = parser.parse_args()
     return args
 
@@ -29,7 +27,7 @@ def main():
         bert_summary = bert_summary_f(reviews)
         res_df = pd.concat([res_df, pd.DataFrame({'id': paper, 'summary': [bert_summary], 'reviews': [reviews]})], ignore_index=True)
     
-    folder_path = f"{args.output_path}/data/evaluation"
+    folder_path = "data/evaluation"
     file_name = "bert_summaries.json"
     file_path = os.path.join(folder_path, file_name)
 

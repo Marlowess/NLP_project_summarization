@@ -12,8 +12,6 @@ def parse_args():
     parser.add_argument("--model_a", type=Path, default="", required=True)
     parser.add_argument("--model_b", type=Path, default="", required=True)
     parser.add_argument("--n_eval_iter", type=Path, default=5)
-    parser.add_argument("--base_dir", type=Path, default="", required=True)
-    parser.add_argument("--output_dir", type=Path, default="", required=True)
     args = parser.parse_args()
     return args
 
@@ -167,7 +165,7 @@ def main():
         print(f"{index + 1}/{summaries_by_documents_df.shape[0]}")
 
     
-    evaluation_df.to_csv(f"{args.output_dir}/data/evaluation/{args.model_a}_vs_{args.model_b}_pairwise_evaluation_dataset.csv", index=False)
+    evaluation_df.to_csv(f"data/evaluation/{args.model_a}_vs_{args.model_b}_pairwise_evaluation_dataset.csv", index=False)
 
 if __name__ == "__main__":
     main()

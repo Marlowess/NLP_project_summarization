@@ -8,7 +8,7 @@ from utils.analysis import create_summary_analysis
 from glimpse.evaluate.evaluate_seahorse_metrics_samples_custom import evaluate_with_seahorse_custom, QUESTION_MAP
 import pickle
 from utils.constants import CANDIDATES_CREATION_PREFIX, INIT_STEP_PREFIX, PREPROCESSING_PREFIX, RSA_PREFIX, EVALUATION_PREFIX, PROCESSED_DATA_PATH, INPUT_SETTINGS_KEYS_TYPES_AND_DEFAULT_PIPELINE
-from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR, WARNING_PREFIX, OPENAI_KEY
+from utils.constants import CANDIDATES_OUTPUT_PATH, INPUT_DATA_PATH, PROCESSED_DATA_PATH, RSA_OUTPUT_DIR, OUTPUT_LOGS_DIR, WARNING_PREFIX
 from handler_abstract import AbstractHandler
 from contextlib import redirect_stdout
 import time
@@ -207,6 +207,9 @@ class PipelineHandler(AbstractHandler):
             self._log_message(EVALUATION_PREFIX, f"Evaluation named {evaluation_name} not implemented yet") 
         self.statistics[f'{evaluation_name}_evaluation_time'] = time.time() - start_time
 
+        # Combine the analyses
+        # combined_analysis = pd.concat([abstractive_analysis, extractive_analysis])
+
     def _perform_seahorse_evaluation(self, abstractive_summaries, extractive_summaries, output_folder_log_files):
         """
         Seahorse evaluation
@@ -238,106 +241,11 @@ class PipelineHandler(AbstractHandler):
                 self._log_message(EVALUATION_PREFIX, f"Extractive average: {extractive_metrics[i]['SHMetric/' + QUESTION_MAP[q] + '/proba_1'].mean():.3f}")
             self._log_message(EVALUATION_PREFIX, "--- End of Summary ---\n\n")
 
-    def _perform_llm_as_expert_pairwise_evaluation(self, args: dict):
-        """
-        This method performs the LLM-as-Expert pairwise evaluation
-        """
-        start_time = time.time()
-        result_evaluation = subprocess.run([
-            "python",
-            f"{self.base_path}/glimpse/evaluate/evaluate_llm_as_expert/evaluate_llm_as_expert_pairwise.py",
-            "--summaries_a", args.get('summaries_a'),
-            "--summaries_b", args.get('summaries_b'),
-            "--model_a", args.get('model_a'),
-            "--model_b", args.get('model_b'),
-            "--n_eval_iter", args.get('n_eval_iter'),
-            "--base_dir", f"{self.base_path}/{self.run_name}",
-            "--output_dir", f"{self.base_path}/{self.run_name}"
-            ], capture_output=True, text=True)
-        
-        return_code = result_evaluation.returncode  # return value of the process
-        task_complete_success = return_code == 0 # Boolean indicating if the job completed successfully
-        self._log_message(EVALUATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
-        self.statistics['evaluate_llm_as_expert_pairwise'] = time.time() - start_time
+    def _perform_bartbert_evaluation(self):
+        pass
 
-    def _perform_llm_as_expert_evaluation(self, args: dict):
-        """
-        This method performs the LLM-as-Expert evaluation
-        """
-        start_time = time.time()
-        result_evaluation = subprocess.run([
-            "python",
-            f"{self.base_path}/glimpse/evaluate/evaluate_llm_as_expert/evaluate_llm_as_expert.py",
-            "--summaries_by_documents", args.get('summaries_by_documents'),
-            "--eval_type", args.get('eval_type'),
-            "--base_dir", f"{self.base_path}/{self.run_name}",
-            "--output_dir", f"{self.base_path}/{self.run_name}"
-            ], capture_output=True, text=True)
-        
-        return_code = result_evaluation.returncode
-        task_complete_success = return_code == 0 # Boolean indicating if the job completed successfully
-        self._log_message(EVALUATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
-        self.statistics['evaluate_llm_as_expert_pairwise'] = time.time() - start_time
-
-    def extract_baseline_summaries(self):
-        """
-        This method extracts the baseline summaries
-        """
-        start_time = time.time()
-        self._log_message(EVALUATION_PREFIX, "Extracting baseline summaries")
-        if self._check_safe_mode(): return
-        result_baseline = subprocess.run([
-            "python",
-            f"{self.base_path}/glimpse/evaluate/evaluate_llm_as_expert/extract_baseline_summaries.py",
-            "--summaries_by_documents", self.settings.get('summaries_by_documents'),
-            "--base_dir", f"{self.base_path}/{self.run_name}",
-            "--output_dir", f"{self.base_path}/{self.run_name}"
-            ], capture_output=True, text=True)
-        
-        return_code = result_baseline.returncode
-        task_complete_success = return_code == 0
-        self._log_message(EVALUATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
-        self.statistics['extract_baseline_summaries'] = time.time() - start_time
-
-    def extract_bert_summaries(self):
-        """
-        This method extracts the BERT summaries
-        """
-        start_time = time.time()
-        self._log_message(EVALUATION_PREFIX, "Extracting BERT summaries")
-        if self._check_safe_mode(): return
-        result_bert = subprocess.run([
-            "python",
-            f"{self.base_path}/glimpse/evaluate/evaluate_llm_as_expert/extract_bert_summaries.py",
-            "--summaries", self.settings.get('summaries_by_documents'),
-            "--base_dir", f"{self.base_path}/{self.run_name}",
-            "--output_dir", f"{self.base_path}/{self.run_name}"
-            ], capture_output=True, text=True)
-        
-        return_code = result_bert.returncode
-        task_complete_success = return_code == 0
-        self._log_message(EVALUATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
-        self.statistics['extract_bert_summaries'] = time.time() - start_time
-
-    def generate_bert_summaries(self):
-        """
-        This method generates the BERT summaries
-        """
-        start_time = time.time()
-        self._log_message(EVALUATION_PREFIX, "Generating BERT summaries")
-        if self._check_safe_mode(): return
-        result_bert = subprocess.run([
-            "python",
-            f"{self.base_path}/glimpse/evaluate/evaluate_llm_as_expert/generate_bert_summaries.py",
-            "--summaries", self.settings.get('summaries_by_documents'),
-            "--base_path", f"{self.base_path}/{self.run_name}",
-            "--output_dir", f"{self.base_path}/{self.run_name}"
-            ], capture_output=True, text=True)
-        
-        return_code = result_bert.returncode
-        task_complete_success = return_code == 0
-        self._log_message(EVALUATION_PREFIX, f"Task completed: {'OK' if task_complete_success else 'KO'}")
-        self.statistics['generate_bert_summaries'] = time.time() - start_time
+    def perform_common_metrics_evaluation(self):
+        pass
 
     def get_statistics(self):
         """
