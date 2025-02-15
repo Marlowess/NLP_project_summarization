@@ -36,14 +36,12 @@ class PipelineHandler(AbstractHandler):
         self.output_logs_dir = OUTPUT_LOGS_DIR.format(output_path=self.output_path, run_name=self.run_name)
         self.safe_mode = True if self.old_run_loaded else False # Safe mode is enabled by default if the old run is loaded
         self._log_message(INIT_STEP_PREFIX, f"Final settings: {settings}")
+        self.statistics = {} # Dictionary of statistics
         self._process_input_data()
         self.rsa_paths = {
             "abstractive": None if not self.old_run_loaded else self._find_file_with_wildcard(f"{self.rsa_output_dir}/abstractive", "*.pk"), 
             "extractive": None if not self.old_run_loaded else self._find_file_with_wildcard(f"{self.rsa_output_dir}/extractive", "*.pk")
         }
-
-        # Dictionary of statistics
-        self.statistics = {}
 
     def _create_folder_if_not_exists(self, path):
         """
