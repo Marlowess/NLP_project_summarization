@@ -1,3 +1,10 @@
+# Running the code
+In order to run all the parts of the code, you have to execute the Jupyter notebooks in the root folder. <br>
+This will run all the parts of the code and generate the results. <br>
+Some of the notebooks are meant to clone the repository,  so you have to bring the notebook on Colab and then execute it.
+
+---
+---
 
 This is the repositotry of  GLIMPSE: Pragmatically Informative Multi-Document Summarization for Scholarly Reviews
 [Paper](https://arxiv.org/abs/2406.07359) | [Code](https://github.com/icannos/glimpse-mds)

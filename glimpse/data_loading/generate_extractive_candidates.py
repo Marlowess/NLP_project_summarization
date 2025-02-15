@@ -70,6 +70,7 @@ def evaluate_summarizer(dataset: Dataset) -> Dataset:
 
 
 def main():
+    nltk.download('punkt_tab')
     args = parse_args()
     # load the dataset
     print("Loading dataset...")
@@ -104,11 +105,10 @@ def main():
     if not output_path.parent.exists():
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    df_dataset.to_csv(output_path, index=False, encoding="utf-8")
+    df_dataset.to_csv(output_path, index=False, encoding="utf-8-sig")
     
     # in case of scripted run, print the output path
     if args.scripted_run: print(output_path)
-
 
 if __name__ == "__main__":
     main()

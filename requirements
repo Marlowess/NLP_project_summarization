@@ -7,3 +7,7 @@ pandas
 datasets
 nltk
 SentencePiece
+sacremoses
+bert-extractive-summarizer
+openai
+sumy
