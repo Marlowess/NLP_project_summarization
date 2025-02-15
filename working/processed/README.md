@@ -1,0 +1,2 @@
+This folder contains files generated starting from the first 100 lines of the input file `ilpost_news_w_summary_italian.csv`.
+The source file was downloaded from https://huggingface.co/datasets/ARTeLab/ilpost.
