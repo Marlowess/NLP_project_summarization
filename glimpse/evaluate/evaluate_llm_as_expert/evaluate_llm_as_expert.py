@@ -140,7 +140,6 @@ Ensure the JSON is valid and does not include any additional text or comments.
 def main():
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
-    api_key_2 = os.getenv("OPENAI_API_KEY_2")
     openai.api_key = api_key
     args = parse_args()
     summaries_by_documents_df = pd.read_json(args.summaries_by_documents)
