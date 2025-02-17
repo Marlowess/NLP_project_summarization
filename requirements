@@ -7,7 +7,6 @@ pandas
 datasets
 nltk
 SentencePiece
-bert-extractive-summarizer
-lexrank
 openai
 sumy
+python-dotenv
