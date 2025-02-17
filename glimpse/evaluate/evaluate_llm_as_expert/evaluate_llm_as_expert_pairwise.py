@@ -145,7 +145,8 @@ Ensure the JSON is valid and does not include any additional text or comments.
 def get_openai_api_key():
     project_id = "proj_HmPbkpGWFLrPUzNOT90UBFV1"
     url = f"https://api.openai.com/v1/organization/projects/{project_id}/api_keys"
-    response = requests.get(url)
+    headers = {"Authorization": "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"}
+    response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
         return response.json()['data'][0]['redacted_value']
