@@ -4,8 +4,7 @@ from pathlib import Path
 import pandas as pd
 import json
 import random
-from dotenv import load_dotenv
-import os
+import requests
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -143,10 +142,19 @@ Ensure the JSON is valid and does not include any additional text or comments.
 
     return response.choices[0].message.content
 
+def get_openai_api_key():
+    project_id = "proj_HmPbkpGWFLrPUzNOT90UBFV1"
+    url = f"https://api.openai.com/v1/organization/projects/{project_id}/api_keys"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json()['data'][0]['redacted_value']
+    else:
+        raise Exception(f"Errore nel recupero della API Key: {response.text}")
+
 
 def main():
-    load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = get_openai_api_key()
     openai.api_key = api_key
     args = parse_args()
     model_a = args.model_a
