@@ -11,3 +11,4 @@ sacremoses
 bert-extractive-summarizer
 openai
 sumy
+python-dotenv

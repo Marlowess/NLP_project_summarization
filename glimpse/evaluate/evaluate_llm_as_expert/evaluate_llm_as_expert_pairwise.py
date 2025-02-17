@@ -4,6 +4,8 @@ from pathlib import Path
 import pandas as pd
 import json
 import random
+from dotenv import load_dotenv
+import os
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -143,7 +145,9 @@ Ensure the JSON is valid and does not include any additional text or comments.
 
 
 def main():
-    openai.api_key = "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"
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    openai.api_key = api_key
     args = parse_args()
     model_a = args.model_a
     model_b = args.model_b
