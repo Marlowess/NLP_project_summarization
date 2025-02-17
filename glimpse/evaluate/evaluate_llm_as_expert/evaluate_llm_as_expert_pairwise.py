@@ -147,7 +147,6 @@ Ensure the JSON is valid and does not include any additional text or comments.
 def main():
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
-    api_key = get_openai_api_key()
     openai.api_key = api_key
     args = parse_args()
     model_a = args.model_a
